@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#050505"/>
+  <!-- Stylized C -->
+  <path d="M360 140H220C175.817 140 140 175.817 140 220V292C140 336.183 175.817 372 220 372H360" stroke="white" stroke-width="48" stroke-linecap="square"/>
+  <!-- Stylized K -->
+  <path d="M260 140L412 256L260 372" stroke="#00D1FF" stroke-width="48" stroke-linecap="square"/>
+  <path d="M412 256H260" stroke="#00D1FF" stroke-width="48" stroke-linecap="square"/>
+  <!-- Tech Accents -->
+  <rect x="360" y="140" width="12" height="48" fill="white" opacity="0.5"/>
+  <rect x="360" y="324" width="12" height="48" fill="white" opacity="0.5"/>
+</svg>

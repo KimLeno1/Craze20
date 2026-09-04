@@ -1,0 +1,67 @@
+<svg width="2400" height="3600" viewBox="0 0 2400 3600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D1FF"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  
+  <!-- Big typography background -->
+  <text x="-200" y="800" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="600" font-weight="900" fill="white" opacity="0.03" transform="rotate(-15 1200 1800)">
+    KRAZE
+  </text>
+  <text x="1000" y="2400" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="600" font-weight="900" fill="white" opacity="0.03" transform="rotate(-15 1200 1800)">
+    CLOSET
+  </text>
+
+  <!-- Content -->
+  <rect x="200" y="300" width="20" height="300" fill="url(#accent)"/>
+  <text x="260" y="450" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="120" font-weight="900" fill="white" letter-spacing="10">
+    CLOSETKRAZE
+  </text>
+  <text x="260" y="550" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="64" font-weight="500" fill="#00D1FF">
+    THE SOCIAL COMMERCE REVOLUTION
+  </text>
+
+  <text x="200" y="1400" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="280" font-weight="900" fill="white">
+    FASHION 
+  </text>
+  <text x="200" y="1700" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="280" font-weight="900" fill="url(#accent)">
+    MEETS
+  </text>
+  <text x="200" y="2000" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="280" font-weight="900" fill="transparent" stroke="white" stroke-width="8">
+    CULTURE.
+  </text>
+
+  <text x="200" y="2400" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="80" font-weight="400" fill="#9ca3af">
+    Discover global trends, get funded by friends,
+  </text>
+  <text x="200" y="2520" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="80" font-weight="400" fill="#9ca3af">
+    and monetize your style with ClosetKraze.
+  </text>
+
+  <!-- Features -->
+  <rect x="200" y="2800" width="600" height="400" rx="40" fill="white" fill-opacity="0.05" stroke="white" stroke-opacity="0.1" stroke-width="4"/>
+  <text x="280" y="2960" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="72" font-weight="bold" fill="#00D1FF">PAY FOR ME</text>
+  <text x="280" y="3060" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#9ca3af">Get sponsored by friends</text>
+
+  <rect x="900" y="2800" width="600" height="400" rx="40" fill="white" fill-opacity="0.05" stroke="white" stroke-opacity="0.1" stroke-width="4"/>
+  <text x="980" y="2960" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="72" font-weight="bold" fill="#EC4899">AI STYLIST</text>
+  <text x="980" y="3060" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#9ca3af">Your personal fashion guru</text>
+
+  <rect x="1600" y="2800" width="600" height="400" rx="40" fill="white" fill-opacity="0.05" stroke="white" stroke-opacity="0.1" stroke-width="4"/>
+  <text x="1680" y="2960" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="72" font-weight="bold" fill="white">EARN REWARDS</text>
+  <text x="1680" y="3060" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#9ca3af">Influence &amp; earn points</text>
+
+  <!-- URL -->
+  <text x="1200" y="3400" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="80" font-weight="bold" fill="#00D1FF" text-anchor="middle" letter-spacing="5">
+    WWW.CLOSETKRAZE.TOP
+  </text>
+</svg>

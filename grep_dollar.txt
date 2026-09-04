@@ -1,0 +1,3 @@
+./public/.htaccess:5:  RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+./matches.txt:278:./public/.htaccess:5:  RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+./missing_dollars.txt:1:./public/.htaccess:5:  RewriteRule ^api/(.*)$ api/index.php [QSA,L]

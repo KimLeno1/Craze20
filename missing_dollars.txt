@@ -1,0 +1,2 @@
+./public/.htaccess:5:  RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+./public/.htaccess:15:<FilesMatch "\.(sqlite|env|ini|log|sh|sql)$">

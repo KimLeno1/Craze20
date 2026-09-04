@@ -1,0 +1,17 @@
+{
+  "name": "Closet Kraze",
+  "short_name": "Closet Kraze",
+  "description": "Dress to be addressed. Closet Kraze is the ultimate gamified fashion destination for high-end archival streetwear.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

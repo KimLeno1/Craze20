@@ -1,0 +1,36 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Route API requests to api/index.php
+  RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
+  # Handle SPA Routing
+  # If the requested file or directory does not exist, serve index.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Security: Deny access to sensitive files
+<FilesMatch "\.(sqlite|env|ini|log|sh|sql)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# Optimization: Gzip Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json
+</IfModule>
+
+# Optimization: Browser Caching
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>

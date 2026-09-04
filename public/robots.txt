@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /profile
+Disallow: /supplier/*
+
+Sitemap: https://closetkraze.top/sitemap.xml

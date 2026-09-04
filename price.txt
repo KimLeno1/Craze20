@@ -1,0 +1,9 @@
+./services/databaseService.ts:389:    const response = await fetchWithAuth(`${API_BASE}/price-anomalies?supplierId=${supplierId}`);
+./services/databaseService.ts:647:    const response = await fetchWithAuth(`${API_BASE}/price-anomalies?${params.toString()}`);
+./services/databaseService.ts:652:    const response = await fetchWithAuth(`${API_BASE}/price-anomalies`, {
+./services/databaseService.ts:660:    const response = await fetchWithAuth(`${API_BASE}/price-anomalies/${id}`, { method: 'DELETE' });
+./services/databaseService.ts:692:      await fetchWithAuth(`${API_BASE}/price-anomalies`, {
+./services/databaseService.ts:700:    const response = await fetchWithAuth(`${API_BASE}/settings/price_anomaly_duration`);
+./services/databaseService.ts:705:    const response = await fetchWithAuth(`${API_BASE}/settings/price_anomaly_duration`, {
+./services/databaseService.ts:713:    const response = await fetchWithAuth(`${API_BASE}/settings/price_anomaly_window`);
+./services/databaseService.ts:722:    const response = await fetchWithAuth(`${API_BASE}/settings/price_anomaly_window`, {

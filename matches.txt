@@ -1,0 +1,427 @@
+./components/PayForMeShareModal.tsx:20:    const shareLink = `${window.location.origin}/payformeshared/${request.userName}/${product.id}/${request.id}`;
+./components/PayForMeShareModal.tsx:25:      `FN:Pay For Me: ${request.userName}`,
+./components/PayForMeShareModal.tsx:27:      `TITLE:Payment Request for ${product.name}`,
+./components/PayForMeShareModal.tsx:28:      `REV:${new Date().toISOString()}`,
+./components/PayForMeShareModal.tsx:29:      `NOTE:Please sponsor this item: ${shareLink}\nMessage: ${request.message || 'Help me get this!'}`,
+./components/PayForMeShareModal.tsx:30:      `URL:${shareLink}`,
+./components/PayForMeShareModal.tsx:38:    link.setAttribute('download', `${request.userName}_PayForMe.vcf`);
+./components/PayForMeShareModal.tsx:47:    const shareLink = `${window.location.origin}/payformeshared/${request.userName}/${product.id}/${request.id}`;
+./components/PayForMeShareModal.tsx:52:👤 REQUESTER: ${request.userName}
+./components/PayForMeShareModal.tsx:53:📦 ITEM: ${product.name}
+./components/PayForMeShareModal.tsx:54:💰 TOTAL GOAL: GH₵${request.total}
+./components/PayForMeShareModal.tsx:55:💬 MESSAGE: "${request.message || 'I would love to have this item!'}"
+./components/PayForMeShareModal.tsx:58:${shareLink}
+./components/PayForMeShareModal.tsx:89:      const shareLink = `${window.location.origin}/payformeshared/${request.userName}/${product.id}/${request.id}`;
+./components/StylistAI.tsx:147:                <button onClick={() => setIsHighFi(!isHighFi)} className={`px-4 py-1.5 rounded-full border transition-all text-[8px] font-black uppercase ${isHighFi ? 'bg-purple-500/20 border-purple-500 text-purple-400' : 'bg-zinc-900 border-white/5 text-zinc-700'}`}>
+./components/SupplierWalletView.tsx:175:                                 <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+./components/SupplierWalletView.tsx:184:                           <td className={`px-8 py-6 text-right font-black ${
+./components/SupplierWalletView.tsx:243:                                 <div className={`px-3 py-1 rounded-full flex items-center gap-1.5 ${
+./components/AdminPromoManager.tsx:36:        id: `promo_${Date.now()}`,
+./components/AdminPromoManager.tsx:40:        description: `${newPromo.discount}${newPromo.type === 'PERCENT' ? '%' : ' GH₵'} discount code`
+./components/AdminPromoManager.tsx:208:                  style={{ width: `${(promo.usedCount / promo.usageLimit) * 100}%` }}
+./components/AdminPanel.tsx:129:        <aside className={`${isSidebarOpen ? 'w-64' : 'w-0 opacity-0 pointer-events-none'} glass-grey border-r border-white/5 flex flex-col p-4 space-y-2 overflow-y-auto transition-all duration-300 scrollbar-hide`}>
+./components/AdminPanel.tsx:149:              className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+./components/PriceAnomalies.tsx:49:    return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+./components/PriceAnomalies.tsx:95:                  className={`group relative bg-zinc-950 border rounded-[2.5rem] md:rounded-[3rem] overflow-hidden transition-all duration-500 ${
+./components/PriceAnomalies.tsx:102:                      className={`w-full h-full object-cover transition-transform duration-1000 ${!isVoided && 'group-hover:scale-110'}`}
+./components/PriceAnomalies.tsx:134:                      className={`w-full py-5 md:py-6 rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${
+./components/CategoryPanel.tsx:48:        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+./components/CategoryPanel.tsx:53:      <div className={`fixed top-0 left-0 h-full w-full sm:max-w-sm bg-zinc-950 z-[210] shadow-2xl transition-transform duration-500 ease-out border-r border-white/5 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+./components/CategoryPanel.tsx:86:                        className={`w-full group flex items-center justify-between p-3 sm:p-4 border transition-all ${
+./components/ContactPanel.tsx:76:            className={`flex items-center gap-3 px-6 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${
+./components/ContactPanel.tsx:104:                  <div key={i} className={`glass-light border rounded-3xl overflow-hidden transition-all duration-500 ${expandedFaq === i ? 'border-[#00D1FF]/40 bg-white/[0.03]' : 'border-white/5'}`}>
+./components/ContactPanel.tsx:110:                      <ChevronDown className={`w-5 h-5 text-zinc-500 transition-transform duration-500 ${expandedFaq === i ? 'rotate-180 text-[#00D1FF]' : ''}`} />
+./components/ContactPanel.tsx:112:                    <div className={`overflow-hidden transition-all duration-500 ease-in-out ${expandedFaq === i ? 'max-h-60' : 'max-h-0'}`}>
+./components/CartDrawer.tsx:106:        className={`fixed inset-0 bg-[#020617]/60 backdrop-blur-sm z-[200] transition-opacity duration-700 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+./components/CartDrawer.tsx:110:      <div className={`fixed top-0 right-0 h-full w-full md:max-w-xl glass-grey z-[210] shadow-[-30px_0_100px_rgba(0,0,0,0.9)] transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-l border-white/5 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+./components/CartDrawer.tsx:165:                  key={`${item.id}-${item.selectedSize}-${item.customizationData?.color || 'default'}`} 
+./components/CartDrawer.tsx:167:                  style={{ animationDelay: `${idx * 100}ms` }}
+./components/CartDrawer.tsx:179:                                {item.isBundle ? 'Synergy Kit' : `Sec_${item.category}`}
+./components/CartDrawer.tsx:247:                <div id="store-credit-panel" className={`flex items-center justify-between p-5 rounded-2xl border transition-all duration-500 ${applyCredit ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}>
+./components/CartDrawer.tsx:249:                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${applyCredit ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+./components/CartDrawer.tsx:259:                    className={`px-6 py-2.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all transform active:scale-90 ${applyCredit ? 'bg-emerald-500 text-white shadow-lg' : 'bg-white/10 text-white hover:bg-white/20'}`}
+./components/AdminOrderManager.tsx:37:            className={`glass-grey p-8 rounded-[2.5rem] border transition-all duration-500 ${selectedOrder?.id === order.id ? 'border-[#00D1FF]/50 glass-light' : 'border-white/5 hover:border-white/20'}`}
+./components/AdminOrderManager.tsx:43:                  <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
+./components/AdminOrderManager.tsx:161:                          className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest border transition-all ${
+./components/ProductCard.tsx:36:      setTimeLeft(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+./components/ProductCard.tsx:53:    <div className={`group relative flex flex-col h-full animate-in fade-in duration-700 glass-card rounded-[2rem] p-4 sm:p-5 transition-all ${isComparing ? 'ring-2 ring-[#00D1FF]' : ''}`}>
+./components/ProductCard.tsx:59:        aria-label={`View details for ${product.name}`}
+./components/ProductCard.tsx:89:            className={`absolute top-3 right-3 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all ${isComparing ? 'bg-[#00D1FF] text-white' : 'bg-black/40 text-white/50 hover:text-white hover:bg-black/60'}`}
+./components/ProductCard.tsx:107:              className={`w-9 h-9 flex items-center justify-center border transition-all rounded-full ${
+./components/ProductCard.tsx:122:              <span className={`text-[6px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-white/5 ${stockStatus.bg} ${stockStatus.color}`}>
+./components/ProductCard.tsx:154:                className={`w-7 h-7 flex items-center justify-center border transition-all rounded-full ${
+./components/PayForMeView.tsx:38:    toast.success(`Paid GH₵${paymentAmount} towards the acquisition!`);
+./components/ComparisonView.tsx:115:                          className={`w-2.5 h-2.5 md:w-3 md:h-3 ${star <= 4 ? 'text-amber-500 fill-amber-500' : 'text-white/10'}`} 
+./components/ComparisonView.tsx:126:                        <div className="h-full bg-[#00D1FF]" style={{ width: `${product.velocityScore}%` }}></div>
+./components/ComparisonView.tsx:167:                <div key={`empty-${idx}`} className="flex flex-col w-[120px] md:w-[200px] bg-[#020617]/10 items-center justify-center text-zinc-800 border-r border-white/5">
+./components/OrderDetailsModal.tsx:59:                    <span className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-2xl ${
+./components/OrderDetailsModal.tsx:90:                          <div className="text-[9px] font-black text-[#00D1FF] uppercase tracking-widest mb-1">{item.isBundle ? 'Synergy Kit' : `Sector_${item.category}`}</div>
+./components/PayForMeSharedView.tsx:51:      const email = sponsorContact.includes('@') ? sponsorContact : `${sponsorName.toLowerCase().replace(/\s/g, '_')}@closetkraze.sponsor`;
+./components/CategoryProductsPanel.tsx:32:      setTimeLeft(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+./components/CategoryProductsPanel.tsx:51:        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+./components/CategoryProductsPanel.tsx:55:      <div className={`fixed top-0 right-0 h-full w-full sm:max-w-md bg-zinc-950 z-[310] shadow-2xl transition-transform duration-500 ease-out border-l border-white/5 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+./components/AdminKitManager.tsx:33:      id: `bundle_${Date.now()}`,
+./components/AdminKitManager.tsx:137:                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+./components/SearchPanel.tsx:47:        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+./components/SearchPanel.tsx:51:      <div className={`fixed top-0 right-0 h-full w-full sm:max-w-md bg-zinc-950 z-[310] shadow-2xl transition-transform duration-500 ease-out border-l border-white/5 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+./components/Navbar.tsx:50:              className={`relative group px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+./components/Navbar.tsx:55:              <span className={`absolute -bottom-2 left-0 w-full h-0.5 bg-[#00D1FF] transition-all duration-300 ${
+./components/LandingScreen.tsx:96:    <div className={`fixed inset-0 z-[300] flex items-center justify-center p-4 overflow-hidden animate-in fade-in duration-500 ${isGlitching ? 'invert' : ''}`}>
+./components/LandingScreen.tsx:108:            <button onClick={() => setAuthMode('LOGIN')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'LOGIN' ? 'bg-white text-black' : 'text-zinc-500'}`}>Sign In</button>
+./components/LandingScreen.tsx:109:            <button onClick={() => setAuthMode('SIGNUP')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'SIGNUP' ? 'bg-white text-black' : 'text-zinc-500'}`}>Register</button>
+./components/AdminWalletView.tsx:139:                                 <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+./components/AdminWalletView.tsx:148:                           <td className={`px-8 py-6 text-right font-black ${
+./components/AdminWalletView.tsx:207:                                 <div className={`px-3 py-1 rounded-full flex items-center gap-1.5 ${
+./components/IdentityPaths.tsx:23:            className={`group relative p-8 rounded-[3rem] border transition-all duration-500 cursor-pointer overflow-hidden ${
+./components/IdentityPaths.tsx:30:            <div className={`absolute -bottom-20 -right-20 w-48 h-48 bg-gradient-to-br ${path.color} opacity-10 blur-[60px] group-hover:opacity-30 transition-opacity`}></div>
+./components/IdentityPaths.tsx:49:              <button className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+./components/Payout.tsx:63:              <div className={`text-3xl font-mono font-black ${stat.color}`}>{stat.value}</div>
+./components/Payout.tsx:74:            className={`text-sm font-black uppercase tracking-[0.3em] pb-2 transition-all border-b-2 ${activeTab === 'REDEEM' ? 'text-white border-[#EC4899]' : 'text-zinc-600 border-transparent hover:text-zinc-400'}`}
+./components/Payout.tsx:80:            className={`text-sm font-black uppercase tracking-[0.3em] pb-2 transition-all border-b-2 ${activeTab === 'HISTORY' ? 'text-white border-[#EC4899]' : 'text-zinc-600 border-transparent hover:text-zinc-400'}`}
+./components/Payout.tsx:93:                  className={`group glass p-8 rounded-[3rem] border transition-all flex flex-col justify-between h-80 ${canAfford ? 'border-white/5 hover:border-[#EC4899]/30' : 'opacity-40 border-transparent'}`}
+./components/Payout.tsx:98:                      <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${reward.currency === 'COINS' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#EC4899]/10 text-[#EC4899]'}`}>
+./components/Payout.tsx:112:                    className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all ${
+./components/Payout.tsx:145:                        <td className={`px-10 py-6 text-right font-black ${tx.value.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>{tx.value}</td>
+./components/Header.tsx:67:          className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full border transition-all flex items-center justify-center ${
+./components/WithdrawalModal.tsx:151:                      className={`p-4 rounded-2xl border ${formData.type === 'bank' ? 'border-emerald-500 bg-emerald-500/10' : 'border-white/10 bg-black'}`}
+./components/WithdrawalModal.tsx:158:                      className={`p-4 rounded-2xl border ${formData.type === 'mobile_money' ? 'border-emerald-500 bg-emerald-500/10' : 'border-white/10 bg-black'}`}
+./components/AdminNotificationManager.tsx:127:              className={`w-full py-5 rounded-3xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all ${
+./components/AdminNotificationManager.tsx:162:                  <span className={`text-[8px] font-black px-2 py-1 rounded uppercase tracking-widest ${
+./components/StyleProtocol.tsx:207:                      className={`px-4 py-2 sm:px-6 sm:py-3 rounded-full border text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+./components/StyleProtocol.tsx:236:                      className={`px-4 py-2 sm:px-6 sm:py-3 rounded-full border text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+./components/StyleProtocol.tsx:265:                      className={`p-4 sm:p-6 rounded-xl border flex flex-col items-center gap-2 sm:gap-3 transition-all ${
+./components/StyleProtocol.tsx:284:                className={`flex items-center gap-2 text-zinc-500 hover:text-white transition-colors ${
+./components/ProductModal.tsx:104:                  className={`flex-[3] py-7 text-[12px] uppercase tracking-[0.4em] font-black transition-all shadow-2xl relative overflow-hidden group ${
+./components/ProductModal.tsx:117:                    className={`flex-1 rounded-2xl border flex items-center justify-center text-xl transition-all ${
+./components/CheckoutView.tsx:103:      const orderId = `ord_${Date.now()}`;
+./components/CheckoutView.tsx:135:              id: `proto_${Date.now()}`,
+./components/CheckoutView.tsx:201:        const finalOrderId = orderId || `ord_${Date.now()}`;
+./components/CheckoutView.tsx:290:              <div key={`${item.id}-${item.selectedSize}`} className="flex gap-3 sm:gap-4 items-center glass-light p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
+./components/CheckoutView.tsx:297:                      {item.isBundle ? 'Bundle Kit' : `Size: ${item.selectedSize || 'OS'}`} // Qty: {item.quantity}
+./components/CheckoutView.tsx:346:                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-[10px] sm:text-xs font-black border transition-all duration-500 ${isActive ? 'bg-white text-black border-white shadow-[0_0_30px_white/20]' : isPast ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'glass-grey text-zinc-500 border-white/5'}`}>
+./components/CheckoutView.tsx:349:                  {idx < 2 && <div className={`h-px flex-1 transition-all duration-700 ${isPast ? 'bg-green-500/30' : 'bg-white/10'}`}></div>}
+./components/CheckoutView.tsx:373:                      toast.success(`Protocol Linked: ${protocol.name}`);
+./components/CheckoutView.tsx:429:                          className={`p-3 sm:p-4 rounded-2xl sm:rounded-[1.5rem] border transition-all duration-500 flex flex-col items-center gap-2 group ${isSelected ? 'bg-white border-white' : 'glass-grey border-white/5 hover:border-white/20'}`}
+./components/CheckoutView.tsx:431:                          <span className={`text-xl sm:text-2xl transition-transform group-hover:scale-110 ${isSelected ? 'grayscale-0' : 'grayscale opacity-40'}`}>{r.icon}</span>
+./components/CheckoutView.tsx:432:                          <span className={`text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-center ${isSelected ? 'text-black' : 'text-zinc-500'}`}>{r.name}</span>
+./components/CheckoutView.tsx:448:                                className={`py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl border transition-all duration-300 text-[8px] sm:text-[10px] font-black uppercase tracking-widest ${isSelected ? 'bg-[#00D1FF] border-[#00D1FF] text-white shadow-[0_0_20px_rgba(0,209,255,0.3)]' : 'glass-light border-white/10 text-zinc-500 hover:border-white/30'}`}
+./components/Skeleton.tsx:17:  return <div className={`${baseClasses} ${variantClasses[variant]} ${className}`} />;
+./components/SubscriptionPanel.tsx:64:        className={`fixed inset-0 bg-black/80 backdrop-blur-md z-[400] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+./components/SubscriptionPanel.tsx:68:      <div className={`fixed top-0 right-0 h-full w-full sm:max-w-lg glass-grey z-[410] shadow-2xl transition-transform duration-500 ease-out border-l border-white/5 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+./components/SubscriptionPanel.tsx:117:                      className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest border transition-all ${
+./components/SubscriptionPanel.tsx:179:                      className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest border transition-all ${
+./components/AdminPriceAnomalyManager.tsx:170:              className={`relative group aspect-[3/4] overflow-hidden rounded-2xl border-2 transition-all ${
+./components/HallOfFame.tsx:42:FN:${user.handle}
+./components/HallOfFame.tsx:44:TITLE:${rank} (Rank #${index + 1})
+./components/HallOfFame.tsx:45:NOTE:Reputation: ${user.rep} | Inspiration: ${inspiration} | ${gratitudeMessage}
+./components/HallOfFame.tsx:53:    link.download = `${user.handle}_Rank_${index + 1}.vcf`;
+./components/HallOfFame.tsx:71:          text: `Check out my rank in Closet Kraze: #${idx + 1}`
+./components/HallOfFame.tsx:107:              className={`group relative flex flex-col sm:flex-row items-center sm:items-center justify-between p-6 md:p-8 gap-6 rounded-3xl md:rounded-[2rem] border transition-all duration-500 ${
+./components/HallOfFame.tsx:112:                <div className={`text-4xl md:text-5xl font-serif italic transition-colors w-12 md:w-auto text-left flex-shrink-0 ${idx < 3 ? 'text-amber-500' : 'text-zinc-800 group-hover:text-zinc-500'}`}>
+./components/HallOfFame.tsx:117:                  <div className={`flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-2xl border overflow-hidden ${
+./components/HallOfFame.tsx:140:                  <div className={`text-xl md:text-3xl font-mono ${idx === 0 ? 'text-amber-500' : 'text-white'}`}>
+./components/PayForMe.tsx:69:      const requestId = `pfm_${Date.now()}`;
+./components/PayForMe.tsx:79:        message: `I'd love to have this ${product.name}! Can someone help me out?`
+./components/PayForMe.tsx:84:      const shareLink = `${window.location.origin}/payformeshared/${userHandle}/${product.id}/${requestId}`;
+./components/PayForMe.tsx:102:        userEmail || `${userHandle}@closetkraze.user`,
+./components/PayForMe.tsx:182:       toast.success(`Converted GH₵${request.amountPaid} to Credit Points.`);
+./components/PayForMe.tsx:224:              className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'ACTIVE' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+./components/PayForMe.tsx:230:              className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'HISTORY' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+./components/PayForMe.tsx:274:                        className={`h-full transition-all duration-1000 ${
+./components/PayForMe.tsx:279:                        style={{ width: (request.status === PayForMeStatus.PAID || request.status === PayForMeStatus.CLAIMED) ? '100%' : `${Math.min(100, Math.max(15, (request.amountPaid / request.total) * 100))}%` }}
+./components/PayForMe.tsx:298:                        <div className={`absolute top-10 left-0 w-full bg-zinc-800 rounded-xl border border-zinc-700 shadow-xl z-50 ${activeDropdownId === request.id ? 'block' : 'hidden'}`}>
+./components/PayForMe.tsx:320:                              const shareLink = `${window.location.origin}/payformeshared/${request.userName}/${product.id}/${request.id}`;
+./components/PayForMe.tsx:493:                  Items reserved via sponsorship remain in the global buffer for {typeof rank.wishlistRetentionDays === 'number' ? `${rank.wishlistRetentionDays} days` : 'Permanently'}.
+./components/AdminLogin.tsx:64:          backgroundImage: `linear-gradient(${themeColor} 1px, transparent 1px), linear-gradient(90deg, ${themeColor} 1px, transparent 1px)`,
+./components/AdminLogin.tsx:69:      <div className={`w-full max-w-lg space-y-10 transition-all duration-500 relative z-10 ${status === 'ERROR' ? 'animate-shake' : ''}`}>
+./components/AdminLogin.tsx:86:          style={{ borderColor: `${themeColor}44`, boxShadow: `0 0 100px ${themeColor}11` }}
+./components/AdminLogin.tsx:104:                  style={{ width: `${authProgress}%`, backgroundColor: themeColor, color: themeColor }} 
+./components/LimitedTimeOfferBanner.tsx:24:      setTimeLeft(`${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+./components/CheckoutProtocolSetup.tsx:84:          id: `proto_${Date.now()}`,
+./components/CheckoutProtocolSetup.tsx:144:                  className={`p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 group ${formData.region === r.name ? 'bg-white border-white' : 'glass-light border-white/5 hover:border-white/20'}`}
+./components/CheckoutProtocolSetup.tsx:146:                  <span className={`text-xl ${formData.region === r.name ? '' : 'grayscale opacity-50'}`}>{r.icon}</span>
+./components/CheckoutProtocolSetup.tsx:147:                  <span className={`text-[8px] font-black uppercase text-center tracking-widest ${formData.region === r.name ? 'text-black' : 'text-zinc-500'}`}>{r.name}</span>
+./components/CheckoutProtocolSetup.tsx:160:                      className={`p-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ${formData.city === city ? 'bg-[#00D1FF] text-black border-[#00D1FF]' : 'border-white/10 text-white hover:border-[#00D1FF]/50'}`}
+./components/AdminProductEditor.tsx:146:        id: `field-${Date.now()}`,
+./components/AdminProductEditor.tsx:310:                        <div className={`w-10 h-5 rounded-full p-1 transition-colors ${formData.isHallOfFame ? 'bg-amber-500' : 'glass-light'}`}>
+./components/AdminProductEditor.tsx:311:                          <div className={`w-3 h-3 bg-white rounded-full transition-transform ${formData.isHallOfFame ? 'translate-x-5' : 'translate-x-0'}`}></div>
+./components/AdminProductEditor.tsx:322:                        <div className={`w-10 h-5 rounded-full p-1 transition-colors ${formData.isNew ? 'bg-[#00D1FF]' : 'glass-light'}`}>
+./components/AdminProductEditor.tsx:323:                          <div className={`w-3 h-3 bg-white rounded-full transition-transform ${formData.isNew ? 'translate-x-5' : 'translate-x-0'}`}></div>
+./components/AdminPayForMeManager.tsx:23:        toast.success(`Request marked as ${status}`);
+./components/AdminPayForMeManager.tsx:31:            `Pay For Me Request ${status}`,
+./components/AdminPayForMeManager.tsx:32:            `Your request for "${request.items[0].name}" has been ${status.toLowerCase()}.`,
+./components/AdminPayForMeManager.tsx:88:              className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filter === s ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+./components/AdminPayForMeManager.tsx:129:                  <span className={`text-[10px] font-black uppercase tracking-widest ${
+./components/BottomNav.tsx:38:      className={`flex flex-col items-center justify-center gap-1 flex-1 transition-all duration-300 ${
+./components/BottomNav.tsx:43:      <span className={`text-[8px] font-black uppercase tracking-widest ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+./components/BottomNav.tsx:129:            className={`absolute -top-8 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 border-4 border-[#020617] overflow-hidden ${
+./components/BottomNav.tsx:133:            <img src="/logo.svg" alt="Home" className={`w-10 h-10 object-contain ${currentView === ViewState.LOBBY ? 'brightness-0' : ''}`} referrerPolicy="no-referrer" />
+./components/BottomNav.tsx:135:          <span className={`absolute bottom-2 text-[10px] font-black uppercase tracking-tighter ${
+./components/SupplierDashboard.tsx:98:        id: `anomaly_${Date.now()}`,
+./components/SupplierDashboard.tsx:211:                <div className="h-full bg-[#f59e0b]" style={{ width: `${supplier?.performanceScore}%` }}></div>
+./components/SupplierDashboard.tsx:498:          {isLoading ? <Skeleton className="h-3 w-20 inline-block" /> : `${orders.length} Records Active`}
+./components/SupplierDashboard.tsx:520:                    className={`glass-light border px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none transition-all ${
+./components/SupplierDashboard.tsx:623:            className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${activeTab === 'DASHBOARD' ? 'bg-[#f59e0b] text-black shadow-lg shadow-[#f59e0b]/20' : 'text-zinc-500 hover:bg-white/5 hover:text-white'}`}
+./components/SupplierDashboard.tsx:630:            className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${activeTab === 'PRODUCTS' ? 'bg-[#f59e0b] text-black shadow-lg shadow-[#f59e0b]/20' : 'text-zinc-500 hover:bg-white/5 hover:text-white'}`}
+./components/SupplierDashboard.tsx:637:            className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${activeTab === 'ORDERS' ? 'bg-[#f59e0b] text-black shadow-lg shadow-[#f59e0b]/20' : 'text-zinc-500 hover:bg-white/5 hover:text-white'}`}
+./components/SupplierDashboard.tsx:644:            className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${activeTab === 'ANOMALIES' ? 'bg-[#f59e0b] text-black shadow-lg shadow-[#f59e0b]/20' : 'text-zinc-500 hover:bg-white/5 hover:text-white'}`}
+./components/SupplierDashboard.tsx:651:            className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${activeTab === 'WALLET' ? 'bg-[#f59e0b] text-black shadow-lg shadow-[#f59e0b]/20' : 'text-zinc-500 hover:bg-white/5 hover:text-white'}`}
+./components/SupplierLogin.tsx:69:          backgroundImage: `linear-gradient(${themeColor} 1px, transparent 1px), linear-gradient(90deg, ${themeColor} 1px, transparent 1px)`,
+./components/SupplierLogin.tsx:82:        <div className="bg-black border p-10 rounded-[3.5rem] space-y-8 shadow-2xl relative overflow-hidden" style={{ borderColor: `${themeColor}44`, boxShadow: `0 0 100px ${themeColor}11` }}>
+./components/SupplierLogin.tsx:101:                  style={{ width: `${authProgress}%`, backgroundColor: themeColor, color: themeColor }} 
+./components/WishlistView.tsx:45:            Retention: {typeof rank.wishlistRetentionDays === 'number' ? `${rank.wishlistRetentionDays} Days` : 'PERMANENT'} // {wishlistItems.length} Identifiers
+./components/Profile.tsx:132:                  className={`border px-4 py-2 rounded-xl text-xl md:text-2xl font-black uppercase outline-none focus:border-[#00D1FF] ${
+./components/Profile.tsx:148:              <h1 className={`text-4xl md:text-8xl font-serif italic tracking-tighter leading-none group cursor-pointer ${theme === 'dark' ? 'text-white' : 'text-black'}`} onClick={() => setIsEditingHandle(true)}>
+./components/Profile.tsx:161:           <div className={`flex-1 lg:flex-none px-6 md:px-8 py-4 rounded-3xl border flex flex-col items-center min-w-[140px] md:min-w-[160px] ${theme === 'dark' ? 'glass-blue border-white/10' : 'glass-light border-zinc-200 shadow-sm'}`}>
+./components/Profile.tsx:165:           <div className={`flex-1 lg:flex-none px-6 md:px-8 py-4 rounded-3xl border flex flex-col items-center min-w-[120px] md:min-w-[140px] ${theme === 'dark' ? 'glass-grey border-white/10' : 'glass-light border-zinc-200 shadow-sm'}`}>
+./components/Profile.tsx:167:              <span className={`text-xl md:text-2xl font-mono font-black ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{totalProgress}%</span>
+./components/Profile.tsx:169:           <div className={`flex-1 lg:flex-none px-6 md:px-8 py-4 rounded-3xl border flex flex-col items-center min-w-[120px] md:min-w-[140px] ${theme === 'dark' ? 'glass-grey border-white/10' : 'glass-light border-zinc-200 shadow-sm'}`}>
+./components/Profile.tsx:171:              <span className={`text-xl md:text-2xl font-mono font-black ${theme === 'dark' ? 'text-white' : 'text-black'}`}>GH₵{stats?.storeCredit || 0}</span>
+./components/Profile.tsx:177:      <section className={`p-8 md:p-16 rounded-[3rem] md:rounded-[4rem] border space-y-10 relative overflow-hidden group ${theme === 'dark' ? 'glass-blue border-white/10' : 'glass-light border-zinc-200 shadow-xl'}`}>
+./components/Profile.tsx:178:        <div className={`absolute top-0 right-0 p-12 opacity-[0.03] text-[15rem] md:text-[20rem] font-black pointer-events-none group-hover:scale-110 transition-transform duration-1000 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+./components/Profile.tsx:191:              <h2 className={`text-3xl md:text-6xl font-serif italic tracking-tight ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+./components/Profile.tsx:201:                  <div className={`h-1.5 w-full rounded-full overflow-hidden ${theme === 'dark' ? 'glass-light' : 'bg-zinc-200'}`}>
+./components/Profile.tsx:204:                      style={{ width: `${(rep / nextRank.threshold) * 100}%` }}
+./components/Profile.tsx:214:                className={`flex-1 sm:flex-none px-6 md:px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[8px] md:text-[9px] transition-all shadow-xl border ${
+./components/Profile.tsx:230:                className={`flex-1 sm:flex-none px-6 md:px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[8px] md:text-[9px] transition-all shadow-xl border ${
+./components/Profile.tsx:241:                  className={`w-full sm:w-auto px-6 md:px-8 py-4 border rounded-2xl font-black uppercase tracking-widest text-[8px] md:text-[9px] hover:bg-red-600 hover:text-white transition-all shadow-xl ${
+./components/Profile.tsx:493:                      <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
+./components/Profile.tsx:575:                className={`relative group glass-light p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border transition-all duration-500 overflow-hidden ${
+./components/Profile.tsx:583:                     className={`h-full transition-all duration-1000 ${ach.unlocked ? 'bg-[#00D1FF]' : 'bg-zinc-700'}`} 
+./components/Profile.tsx:584:                     style={{ width: `${progressPercent}%` }}
+./components/Profile.tsx:589:                  <div className={`text-3xl md:text-4xl transition-transform duration-500 group-hover:scale-110 ${ach.unlocked ? 'drop-shadow-[0_0_10px_#00D1FF]' : ''}`}>
+./components/AdminSupplierPanel.tsx:88:      toast.success(`Supplier status updated to ${nextStatus}.`);
+./components/AdminSupplierPanel.tsx:178:              <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+./components/AdminSupplierPanel.tsx:198:                     className={`px-4 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all ${
+./components/AdminSupplierPanel.tsx:253:                <div key={p.id || `prod-${index}`} className="group glass-grey p-6 rounded-3xl border border-white/5 hover:border-[#00D1FF]/30 transition-all">
+./components/AdminSupplierPanel.tsx:295:                     <tr key={o.id || `ord-${index}`} className="border-b border-white/5 hover:glass-light transition-colors">
+./components/AdminSupplierPanel.tsx:298:                           <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+./components/AdminSupplierPanel.tsx:440:            key={sup.id || `sup-${index}`} 
+./components/AdminSupplierPanel.tsx:450:                  <div className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
+./components/HomeLobby.tsx:196:            <div key={`dup-${idx}`} className="flex items-center gap-3 sm:gap-4 group cursor-default">
+./components/AdminDatabaseView.tsx:45:    a.download = `CC_${activeSubTab}_${new Date().toISOString().split('T')[0]}.json`;
+./components/AdminDatabaseView.tsx:57:        `"${u.handle}"`,
+./components/AdminDatabaseView.tsx:58:        `"${u.email}"`,
+./components/AdminDatabaseView.tsx:59:        `"${u.archetype}"`,
+./components/AdminDatabaseView.tsx:64:        `"${u.status}"`,
+./components/AdminDatabaseView.tsx:65:        `"${u.lastLogin}"`,
+./components/AdminDatabaseView.tsx:72:        `"${p.id}"`,
+./components/AdminDatabaseView.tsx:73:        `"${p.name}"`,
+./components/AdminDatabaseView.tsx:74:        `"${p.category}"`,
+./components/AdminDatabaseView.tsx:87:    link.setAttribute("download", `CC_${activeSubTab}_LEDGER_${timestamp}.csv`);
+./components/AdminDatabaseView.tsx:104:            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'USERS' ? 'bg-white text-black shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+./components/AdminDatabaseView.tsx:110:            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'PRODUCTS' ? 'bg-white text-black shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+./components/AdminDatabaseView.tsx:152:                      <span className={`px-2 py-0.5 rounded border ${
+./components/AdminDatabaseView.tsx:166:                      <span className={`w-2 h-2 rounded-full inline-block mr-2 ${user.status === 'ACTIVE' ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></span>
+./components/AdminDatabaseView.tsx:172:                        className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase transition-all ${
+./components/AdminDatabaseView.tsx:220:                          <div className="h-full bg-[#00D1FF]" style={{ width: `${product.velocityScore}%` }}></div>
+./components/AdminMetricsView.tsx:32:    { label: 'Total Revenue', value: `GH₵${metrics?.totalRevenue?.toLocaleString() || '0'}`, icon: DollarSign, color: 'text-emerald-500', trend: '+12.5%' },
+./components/AdminMetricsView.tsx:53:              <div className={`p-3 rounded-2xl glass-light ${stat.color}`}>
+./components/AdminMetricsView.tsx:73:                <button key={t} className={`px-4 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all ${t === '7D' ? 'bg-white text-black' : 'text-zinc-600 hover:text-white'}`}>{t}</button>
+./components/AdminMetricsView.tsx:83:                  style={{ height: `${h}%` }}
+./components/AdminMetricsView.tsx:114:                  <item.icon className={`w-4 h-4 ${item.color}`} />
+./components/AdminMetricsView.tsx:117:                <span className={`text-[10px] font-black uppercase tracking-widest ${item.color}`}>{item.status}</span>
+./components/NotificationCenter.tsx:22:        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[220] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+./components/NotificationCenter.tsx:25:      <div className={`fixed top-0 right-0 h-full w-full sm:max-w-md bg-[#050505] z-[230] shadow-[-20px_0_80px_rgba(0,0,0,0.8)] transition-transform duration-500 ease-out border-l border-white/5 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+./components/NotificationCenter.tsx:56:                  className={`group relative p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border transition-all cursor-pointer overflow-hidden ${
+./components/NotificationCenter.tsx:65:                      <span className={`text-[7px] sm:text-[8px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded ${
+./components/FamousProducts.tsx:39:        setTimeLeft(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+./components/FamousProducts.tsx:156:                className={`group py-12 md:py-24 flex flex-col lg:grid lg:grid-cols-12 gap-8 md:gap-16 items-start transition-all duration-700 ${isComparing ? 'bg-[#00D1FF]/5' : ''}`}
+./components/FamousProducts.tsx:168:                        style={{ width: `${p.velocityScore}%` }}
+./components/FamousProducts.tsx:218:                      <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-white/5 ${stockStatus.bg} ${stockStatus.color}`}>
+./components/FamousProducts.tsx:263:                        className={`w-14 h-14 md:w-16 md:h-16 border transition-all flex items-center justify-center ${
+./components/FamousProducts.tsx:274:                          className={`w-14 h-14 md:w-16 md:h-16 border transition-all flex items-center justify-center ${
+./components/Tutorial.tsx:72:    <div className={`fixed inset-0 z-[600] flex items-center justify-center p-6 transition-all duration-700 ${isExiting ? 'opacity-0 scale-110' : 'opacity-100'}`}>
+./components/Tutorial.tsx:139:                  <div key={i} className={`h-1 transition-all duration-500 rounded-full ${i === currentStep ? 'w-8 bg-[#EC4899]' : 'w-2 bg-zinc-800'}`} />
+./components/AdminSecurityPanel.tsx:57:        toast.success(response.message || `Success: ${action} procedure finalized.`);
+./components/AdminSecurityPanel.tsx:61:        toast.error(response.message || `Protocol failed during ${action}.`);
+./components/AdminSecurityPanel.tsx:104:            <div className={`text-lg font-black font-mono ${stat.color}`}>{stat.value}</div>
+./components/AdminSecurityPanel.tsx:136:                        <span className={`px-2 py-1 rounded text-[7px] font-black uppercase ${
+./components/AdminSecurityPanel.tsx:177:                  aria-label={`${control.label}: ${control.desc}`}
+./components/AdminSecurityPanel.tsx:178:                  className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all ${control.color} text-white active:scale-95 disabled:opacity-50 flex items-center gap-2 min-w-[90px] justify-center`}
+./components/AdminSecurityPanel.tsx:201:                  style={{ height: `${h}%` }}
+./components/AdminSecurityPanel.tsx:202:                  title={`Traffic: ${h}mb/s`}
+./components/SupplierProductEditor.tsx:125:        id: `field-${Date.now()}`,
+./components/ProductDetail.tsx:120:      setTimeLeft(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+./components/ProductDetail.tsx:148:        toast.error(`Please complete the customization: ${missingFields[0].label} is required.`);
+./components/ProductDetail.tsx:218:        style={{ backgroundColor: `rgba(2, 6, 23, ${scrollOpacity * 0.6})`, backdropFilter: `blur(${scrollOpacity * 20}px)` }}
+./components/ProductDetail.tsx:241:                  text: `Check out ${product.name} on Closet Kraze!`,
+./components/ProductDetail.tsx:245:                navigator.clipboard.writeText(`${product.name} - ${url}`);
+./components/ProductDetail.tsx:255:            className={`w-10 h-10 flex items-center justify-center rounded-full glass-light border transition-all active:scale-90 text-lg ${isInWishlist ? 'text-[#00D1FF] border-[#00D1FF]/30 bg-[#00D1FF]/5' : 'text-white/20 border-white/10 hover:border-white/30'}`}
+./components/ProductDetail.tsx:318:                <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-[0.4em] md:tracking-[0.5em] ${
+./components/ProductDetail.tsx:354:                    className={`flex-1 rounded-full transition-all duration-1000 ${
+./components/ProductDetail.tsx:359:                    style={{ transitionDelay: `${i * 50}ms` }}
+./components/ProductDetail.tsx:368:                  ? `GH₵${product.priceRange?.min} - GH₵${product.priceRange?.max}` 
+./components/ProductDetail.tsx:369:                  : `GH₵${rankAdjustedPrice}`
+./components/ProductDetail.tsx:376:                {product.isCustom ? 'Custom Order' : `-${Math.round((1 - rankAdjustedPrice/product.originalPrice) * 100)}% Rank Benefit`}
+./components/ProductDetail.tsx:407:                        placeholder={`Enter ${field.label.toLowerCase()}...`}
+./components/ProductDetail.tsx:460:                  className={`min-w-[80px] h-14 rounded-xl font-mono text-xs font-bold transition-all border ${
+./components/ProductDetail.tsx:492:                <div className={`w-2 h-2 rounded-full ${!product.inStock || product.stockCount === 0 ? 'bg-red-500' : product.stockCount < 10 ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></div>
+./components/ProductDetail.tsx:497:                      ? `Low Stock: Only ${product.stockCount} left` 
+./components/ProductDetail.tsx:498:                      : `In Stock: ${product.stockCount} available`}
+./components/ProductDetail.tsx:524:                      className={`text-xl transition-colors ${star <= newReviewRating ? 'text-amber-400' : 'text-white/20 hover:text-white/50'}`}
+./components/ProductDetail.tsx:608:                className={`flex-[3] h-16 md:h-20 rounded-2xl font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-[10px] md:text-xs transition-all active:scale-[0.98] shadow-2xl ${
+./components/ProductDetail.tsx:627:                  className={`flex-1 h-16 md:h-20 rounded-2xl border flex items-center justify-center transition-all ${
+./components/SocialGallery.tsx:113:      id: `post_${Date.now()}`,
+./components/SocialGallery.tsx:185:              className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+./components/SocialGallery.tsx:193:              className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+./components/SocialGallery.tsx:231:                    alt={`Post by ${post.userHandle}`}
+./components/SocialGallery.tsx:255:                      className={`flex items-center gap-1.5 transition-colors ${getUserInteraction(post.id) === 'LIKE' ? 'text-[#00D1FF]' : 'text-zinc-400 hover:text-[#00D1FF]'}`}
+./components/SocialGallery.tsx:257:                      <Heart className={`w-4 h-4 ${getUserInteraction(post.id) === 'LIKE' ? 'fill-current' : ''}`} />
+./components/SocialGallery.tsx:262:                      className={`flex items-center gap-1.5 transition-colors ${getUserInteraction(post.id) === 'DISLIKE' ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'}`}
+./components/SocialGallery.tsx:264:                      <ThumbsDown className={`w-4 h-4 ${getUserInteraction(post.id) === 'DISLIKE' ? 'fill-current' : ''}`} />
+./components/SocialGallery.tsx:287:                    alt={`Post by ${post.userHandle}`}
+./components/SocialGallery.tsx:408:                      className={`flex items-center gap-2 transition-colors ${getUserInteraction(selectedPost.id) === 'LIKE' ? 'text-[#00D1FF]' : 'text-zinc-400 hover:text-[#00D1FF]'}`}
+./components/SocialGallery.tsx:410:                      <Heart className={`w-5 h-5 ${getUserInteraction(selectedPost.id) === 'LIKE' ? 'fill-current' : ''}`} />
+./components/SocialGallery.tsx:415:                      className={`flex items-center gap-2 transition-colors ${getUserInteraction(selectedPost.id) === 'DISLIKE' ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'}`}
+./components/SocialGallery.tsx:417:                      <ThumbsDown className={`w-5 h-5 ${getUserInteraction(selectedPost.id) === 'DISLIKE' ? 'fill-current' : ''}`} />
+./public/.htaccess:5:  RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+./public/.htaccess:15:<FilesMatch "\.(sqlite|env|ini|log|sh|sql)$">
+./services/databaseService.ts:9:    let errorMessage = `HTTP ${response.status} Error`;
+./services/databaseService.ts:20:      toast.error(`Invalid Data: ${errorMessage}`);
+./services/databaseService.ts:51:      throw new Error(`HTTP ${response.status} Error: ${text}`);
+./services/databaseService.ts:75:          const refreshResponse = await fetch(`${API_BASE}/auth/refresh-token`, { 
+./services/databaseService.ts:108:      const response = await fetchWithAuth(`${API_BASE}/auth/check`);
+./services/databaseService.ts:121:    const response = await fetchWithAuth(`${API_BASE}/auth/login`, {
+./services/databaseService.ts:135:    const response = await fetchWithAuth(`${API_BASE}/auth/signup`, {
+./services/databaseService.ts:143:    const response = await fetch(`${API_BASE}/auth/refresh-token`, {
+./services/databaseService.ts:152:    const response = await fetchWithAuth(`${API_BASE}/auth/request-reset`, {
+./services/databaseService.ts:160:    const response = await fetchWithAuth(`${API_BASE}/auth/reset-password`, {
+./services/databaseService.ts:168:    await fetchWithAuth(`${API_BASE}/auth/logout`, { 
+./services/databaseService.ts:180:    const response = await fetchWithAuth(`${API_BASE}/tags`);
+./services/databaseService.ts:184:    const response = await fetchWithAuth(`${API_BASE}/tags`, {
+./services/databaseService.ts:191:    const response = await fetchWithAuth(`${API_BASE}/tags/${id}`, { method: 'DELETE' });
+./services/databaseService.ts:195:    const response = await fetchWithAuth(`${API_BASE}/categories`);
+./services/databaseService.ts:199:    const response = await fetchWithAuth(`${API_BASE}/categories`, {
+./services/databaseService.ts:206:    const response = await fetchWithAuth(`${API_BASE}/categories/${id}`, {
+./services/databaseService.ts:213:    const response = await fetchWithAuth(`${API_BASE}/categories/${id}`, { method: 'DELETE' });
+./services/databaseService.ts:219:    const response = await fetchWithAuth(`${API_BASE}/users`);
+./services/databaseService.ts:224:    const response = await fetchWithAuth(`${API_BASE}/admins`);
+./services/databaseService.ts:229:    const response = await fetchWithAuth(`${API_BASE}/users/${userId}/status`, {
+./services/databaseService.ts:237:    const response = await fetchWithAuth(`${API_BASE}/users/${userId}`, { method: 'DELETE' });
+./services/databaseService.ts:242:    const response = await fetchWithAuth(`${API_BASE}/users/ranked`);
+./services/databaseService.ts:247:    const response = await fetchWithAuth(`${API_BASE}/users/${userId}/rep`, {
+./services/databaseService.ts:261:      const response = await fetchWithAuth(`${API_BASE}/products`);
+./services/databaseService.ts:272:      const response = await fetchWithAuth(`${API_BASE}/products/search?q=${encodeURIComponent(query)}`);
+./services/databaseService.ts:283:    const url = isUpdate ? `${API_BASE}/products/${product.id}` : `${API_BASE}/products`;
+./services/databaseService.ts:300:    const response = await fetchWithAuth(`${API_BASE}/products/${productId}/hype`, {
+./services/databaseService.ts:308:    const response = await fetchWithAuth(`${API_BASE}/products/${productId}/velocity`, {
+./services/databaseService.ts:315:    const response = await fetchWithAuth(`${API_BASE}/products/${productId}/scores`, {
+./services/databaseService.ts:323:    const response = await fetchWithAuth(`${API_BASE}/products/${productId}/hall-of-fame`, {
+./services/databaseService.ts:331:    const response = await fetchWithAuth(`${API_BASE}/products/velocity-heat`);
+./services/databaseService.ts:336:    const response = await fetchWithAuth(`${API_BASE}/products/hall-of-fame`);
+./services/databaseService.ts:341:    const response = await fetchWithAuth(`${API_BASE}/products/${productId}/reviews`);
+./services/databaseService.ts:346:    const response = await fetchWithAuth(`${API_BASE}/products/${productId}/reviews`, {
+./services/databaseService.ts:356:      const response = await fetchWithAuth(`${API_BASE}/suppliers`);
+./services/databaseService.ts:366:    const response = await fetchWithAuth(`${API_BASE}/suppliers/${id}`);
+./services/databaseService.ts:371:    const response = await fetchWithAuth(`${API_BASE}/suppliers`, {
+./services/databaseService.ts:379:    const response = await fetchWithAuth(`${API_BASE}/products?supplierId=${supplierId}`);
+./services/databaseService.ts:384:    const response = await fetchWithAuth(`${API_BASE}/orders?supplierId=${supplierId}`);
+./services/databaseService.ts:389:    const response = await fetchWithAuth(`${API_BASE}/price-anomalies?supplierId=${supplierId}`);
+./services/databaseService.ts:395:      await fetchWithAuth(`${API_BASE}/suppliers`, {
+./services/databaseService.ts:403:    const response = await fetchWithAuth(`${API_BASE}/suppliers/${id}`, { method: 'DELETE' });
+./services/databaseService.ts:408:    const response = await fetchWithAuth(`${API_BASE}/suppliers/${id}`, {
+./services/databaseService.ts:416:    const response = await fetchWithAuth(`${API_BASE}/suppliers/${supplierId}/commission`, {
+./services/databaseService.ts:424:    const response = await fetchWithAuth(`${API_BASE}/suppliers/${supplierId}/password`, {
+./services/databaseService.ts:432:    const response = await fetchWithAuth(`${API_BASE}/suppliers/${supplierId}/status`, {
+./services/databaseService.ts:441:    const response = await fetchWithAuth(`${API_BASE}/wallets/${id}`);
+./services/databaseService.ts:446:    const response = await fetchWithAuth(`${API_BASE}/wallets/${id}/payout`, {
+./services/databaseService.ts:454:    const response = await fetchWithAuth(`${API_BASE}/paystack/banks${type ? `?type=${type}` : ''}`);
+./services/databaseService.ts:459:    const response = await fetchWithAuth(`${API_BASE}/paystack/resolve-account?account_number=${accountNumber}&bank_code=${bankCode}`);
+./services/databaseService.ts:464:    const response = await fetchWithAuth(`${API_BASE}/paystack/withdraw`, {
+./services/databaseService.ts:472:    const response = await fetchWithAuth(`${API_BASE}/paystack/withdrawals/${userId}`);
+./services/databaseService.ts:477:    const response = await fetchWithAuth(`${API_BASE}/paystack/transfer/verify/${reference}`);
+./services/databaseService.ts:482:    const response = await fetchWithAuth(`${API_BASE}/paystack/initialize`, {
+./services/databaseService.ts:490:    const response = await fetchWithAuth(`${API_BASE}/paystack/verify/${reference}`);
+./services/databaseService.ts:496:    const response = await fetchWithAuth(`${API_BASE}/quiz/results`, {
+./services/databaseService.ts:504:    const response = await fetchWithAuth(`${API_BASE}/quiz/results/${userId}`);
+./services/databaseService.ts:510:    const response = await fetchWithAuth(`${API_BASE}/loyalty/points/${userId}`);
+./services/databaseService.ts:516:    const response = await fetchWithAuth(`${API_BASE}/loyalty/earn`, {
+./services/databaseService.ts:524:    const response = await fetchWithAuth(`${API_BASE}/loyalty/redeem`, {
+./services/databaseService.ts:532:    const response = await fetchWithAuth(`${API_BASE}/loyalty/transactions/${userId}`);
+./services/databaseService.ts:538:    const url = userId ? `${API_BASE}/notifications?userId=${userId}` : `${API_BASE}/notifications`;
+./services/databaseService.ts:544:    const response = await fetchWithAuth(`${API_BASE}/notifications/${id}/read`, {
+./services/databaseService.ts:551:    const response = await fetchWithAuth(`${API_BASE}/notifications`, {
+./services/databaseService.ts:560:      await fetchWithAuth(`${API_BASE}/notifications`, {
+./services/databaseService.ts:568:    const response = await fetchWithAuth(`${API_BASE}/notifications/supplier`, {
+./services/databaseService.ts:576:    const response = await fetchWithAuth(`${API_BASE}/notifications`, {
+./services/databaseService.ts:585:    const response = await fetchWithAuth(`${API_BASE}/promo-codes`);
+./services/databaseService.ts:591:      await fetchWithAuth(`${API_BASE}/promo-codes`, {
+./services/databaseService.ts:599:    const response = await fetchWithAuth(`${API_BASE}/promo-codes/${id}`, { method: 'DELETE' });
+./services/databaseService.ts:606:      const response = await fetchWithAuth(`${API_BASE}/orders`, { credentials: 'include' });
+./services/databaseService.ts:617:      await fetchWithAuth(`${API_BASE}/orders`, {
+./services/databaseService.ts:627:    const response = await fetchWithAuth(`${API_BASE}/orders`, {
+./services/databaseService.ts:635:    const response = await fetchWithAuth(`${API_BASE}/orders/${orderId}/status`, {
+./services/databaseService.ts:647:    const response = await fetchWithAuth(`${API_BASE}/price-anomalies?${params.toString()}`);
+./services/databaseService.ts:652:    const response = await fetchWithAuth(`${API_BASE}/price-anomalies`, {
+./services/databaseService.ts:660:    const response = await fetchWithAuth(`${API_BASE}/price-anomalies/${id}`, { method: 'DELETE' });
+./services/databaseService.ts:665:    const response = await fetchWithAuth(`${API_BASE}/admin/anomaly-config`);
+./services/databaseService.ts:670:    const response = await fetchWithAuth(`${API_BASE}/admin/anomaly-config`, {
+./services/databaseService.ts:678:    const response = await fetchWithAuth(`${API_BASE}/user/anomaly-session/${userId}`);
+./services/databaseService.ts:683:    const response = await fetchWithAuth(`${API_BASE}/user/anomaly-session/start`, {
+./services/databaseService.ts:692:      await fetchWithAuth(`${API_BASE}/price-anomalies`, {
+./services/databaseService.ts:700:    const response = await fetchWithAuth(`${API_BASE}/settings/price_anomaly_duration`);
+./services/databaseService.ts:705:    const response = await fetchWithAuth(`${API_BASE}/settings/price_anomaly_duration`, {
+./services/databaseService.ts:713:    const response = await fetchWithAuth(`${API_BASE}/settings/price_anomaly_window`);
+./services/databaseService.ts:722:    const response = await fetchWithAuth(`${API_BASE}/settings/price_anomaly_window`, {
+./services/databaseService.ts:732:    const response = await fetchWithAuth(`${API_BASE}/bundles`);
+./services/databaseService.ts:738:      await fetchWithAuth(`${API_BASE}/bundles`, {
+./services/databaseService.ts:746:    const response = await fetchWithAuth(`${API_BASE}/bundles/${id}`, { method: 'DELETE' });
+./services/databaseService.ts:752:    const response = await fetchWithAuth(`${API_BASE}/pay-for-me`);
+./services/databaseService.ts:757:    const response = await fetch(`${API_BASE}/pay-for-me/${requestId}`);
+./services/databaseService.ts:763:      await fetchWithAuth(`${API_BASE}/pay-for-me`, {
+./services/databaseService.ts:771:    const response = await fetchWithAuth(`${API_BASE}/pay-for-me`, {
+./services/databaseService.ts:779:    const response = await fetchWithAuth(`${API_BASE}/pay-for-me/${requestId}/status`, {
+./services/databaseService.ts:787:    const response = await fetchWithAuth(`${API_BASE}/pay-for-me/${requestId}/amount-paid`, {
+./services/databaseService.ts:796:    const response = await fetchWithAuth(`${API_BASE}/social-posts`);
+./services/databaseService.ts:801:    const response = await fetchWithAuth(`${API_BASE}/social-posts/${postId}/interact`, {
+./services/databaseService.ts:809:    const response = await fetchWithAuth(`${API_BASE}/social-posts/${postId}/comments`);
+./services/databaseService.ts:814:    const response = await fetchWithAuth(`${API_BASE}/social-posts/${postId}/comments`, {
+./services/databaseService.ts:823:    const response = await fetchWithAuth(`${API_BASE}/user/protocol-session/${type}`);
+./services/databaseService.ts:828:    const response = await fetchWithAuth(`${API_BASE}/user/protocol-session`, {
+./services/databaseService.ts:836:    const response = await fetchWithAuth(`${API_BASE}/user/protocol-session/${type}`, { method: 'DELETE' });
+./services/databaseService.ts:841:    const response = await fetchWithAuth(`${API_BASE}/social-posts/${postId}/report`, {
+./services/databaseService.ts:850:    const response = await fetchWithAuth(`${ADMIN_API_BASE}/posts/${postId}`, {
+./services/databaseService.ts:858:    const response = await fetchWithAuth(`${API_BASE}/social-interactions/${userId}`);
+./services/databaseService.ts:863:    const response = await fetchWithAuth(`${API_BASE}/social-posts`, {
+./services/databaseService.ts:872:    const response = await fetchWithAuth(`${API_BASE}/user-stats/${userId}/achievements/${achievementId}`, {
+./services/databaseService.ts:880:    const response = await fetchWithAuth(`${API_BASE}/user-stats/${userId}`);
+./services/databaseService.ts:885:    const response = await fetchWithAuth(`${API_BASE}/user-stats/${userId}`, {
+./services/databaseService.ts:893:    const response = await fetchWithAuth(`${API_BASE}/user-preferences/${userId}`);
+./services/databaseService.ts:898:    const response = await fetchWithAuth(`${API_BASE}/user-preferences/${userId}`, {
+./services/databaseService.ts:906:    const response = await fetchWithAuth(`${API_BASE}/user-history/${userId}`);
+./services/databaseService.ts:911:    const response = await fetchWithAuth(`${API_BASE}/user-history/${userId}`, {
+./services/databaseService.ts:920:    const response = await fetchWithAuth(`${API_BASE}/user/logistics/${userId}`);
+./services/databaseService.ts:925:    const response = await fetchWithAuth(`${API_BASE}/user/logistics/${userId}`, {
+./services/databaseService.ts:934:    const response = await fetchWithAuth(`${API_BASE}/recommendations/${userId}`);
+./services/databaseService.ts:939:    const response = await fetchWithAuth(`${API_BASE}/user-history/${userId}/track`, {
+./services/databaseService.ts:948:    const response = await fetchWithAuth(`${API_BASE}/admin/metrics`);
+./services/databaseService.ts:953:    const response = await fetchWithAuth(`${API_BASE}/admins/security`);
+./services/databaseService.ts:964:    const response = await fetchWithAuth(`${API_BASE}/admins/security/${endpointMap[action]}`, {
+./services/databaseService.ts:971:    const response = await fetchWithAuth(`${ADMIN_API_BASE}/security-events`, {
+./services/databaseService.ts:980:    const response = await fetchWithAuth(`${API_BASE}/user/profile/${userId}`);
+./services/databaseService.ts:985:    const response = await fetchWithAuth(`${API_BASE}/user/profile/${userId}`, {
+./services/databaseService.ts:993:    const response = await fetchWithAuth(`${API_BASE}/user/wishlist/${userId}`);
+./services/databaseService.ts:998:    const response = await fetchWithAuth(`${API_BASE}/user/${userId}/outfits`);
+./services/databaseService.ts:1003:    const response = await fetchWithAuth(`${API_BASE}/user/${userId}/outfits`, {
+./services/databaseService.ts:1011:    const response = await fetchWithAuth(`${API_BASE}/user/wishlist`, {
+./services/databaseService.ts:1019:    const response = await fetchWithAuth(`${API_BASE}/user/wishlist/${userId}/${productId}`, {
+./services/databaseService.ts:1026:    const response = await fetchWithAuth(`${API_BASE}/user/cart/${userId}`);
+./services/databaseService.ts:1031:    const response = await fetchWithAuth(`${API_BASE}/user/cart`, {
+./services/databaseService.ts:1039:    const response = await fetchWithAuth(`${API_BASE}/user/cart`, {
+./services/databaseService.ts:1047:    const response = await fetchWithAuth(`${API_BASE}/user/cart/${userId}/${productId}/${size || 'none'}/${color || 'none'}`, {
+./services/databaseService.ts:1054:    const response = await fetchWithAuth(`${API_BASE}/user/mystery-box/open`, {
+./services/databaseService.ts:1062:    const response = await fetchWithAuth(`${API_BASE}/user/mystery-box/history/${userId}`);
+./services/databaseService.ts:1067:    const response = await fetchWithAuth(`${API_BASE}/user/game-scores`, {
+./services/databaseService.ts:1075:    const response = await fetchWithAuth(`${API_BASE}/user/game-scores/${userId}`);
+./services/databaseService.ts:1080:    const response = await fetchWithAuth(`${API_BASE}/user/stylist-sessions`, {
+./services/databaseService.ts:1088:    const response = await fetchWithAuth(`${API_BASE}/user/stylist-sessions/${userId}`);
+./services/databaseService.ts:1093:    const response = await fetchWithAuth(`${API_BASE}/user/try-on`, {
+./services/databaseService.ts:1101:    const response = await fetchWithAuth(`${API_BASE}/user/try-on/${userId}`);
+./services/databaseService.ts:1109:    const response = await fetchWithAuth(`${API_BASE}/upload/product`, {
+./services/databaseService.ts:1119:    const response = await fetchWithAuth(`${API_BASE}/upload/feed`, {
+./services/databaseService.ts:1127:    const response = await fetchWithAuth(`${API_BASE}/compliance/align`, {
+./services/databaseService.ts:1139:    return `${now.getFullYear()}-W${week}`;
+./services/geminiService.ts:50:      contents: `Analyze user mood '${mood}' and objective '${occasion}'. Provide an elite, provocative styling verdict for 'Closet Kraze'.`,
+./services/geminiService.ts:69:    text: `Global signals for the '${archetype}' archetype indicate a mass shift toward Minimalist Void aesthetics. Silhouette density is dropping as 'Zero Point' styling becomes the new authority standard. Material scarcity of deep-dyed tech-wear fabrics is driving a trend toward 'Ghost Material' transparencies.`,
+./services/geminiService.ts:89:      contents: `High-fashion editorial blueprint for Closet Kraze. Subject: ${description}. Technical streetwear, luxury avant-garde, cinematic lighting. Response must be an image generation prompt.`,

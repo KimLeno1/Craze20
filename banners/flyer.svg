@@ -1,0 +1,38 @@
+<svg width="800" height="1200" viewBox="0 0 800 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="card-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#EC4899" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  
+  <rect width="100%" height="100%" fill="#020617"/>
+  
+  <rect x="0" y="200" width="800" height="600" fill="url(#card-glow)"/>
+  
+  <text x="400" y="150" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="42" font-weight="900" fill="#00D1FF" letter-spacing="8" text-anchor="middle">
+    CLOSETKRAZE
+  </text>
+
+  <rect x="400" y="250" width="4" height="100" fill="#EC4899" transform="translate(-2, 0)"/>
+
+  <text x="400" y="450" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="96" font-weight="900" fill="white" text-anchor="middle">
+    SUMMER
+  </text>
+  <text x="400" y="560" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="110" font-weight="900" fill="transparent" stroke="#00D1FF" stroke-width="4" text-anchor="middle">
+    DRIP
+  </text>
+
+  <text x="400" y="700" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="32" font-weight="400" fill="#9ca3af" text-anchor="middle">
+    Exclusive Drops • Global Delivery
+  </text>
+  
+  <!-- "QR" Code box -->
+  <rect x="300" y="800" width="200" height="200" rx="16" fill="white" />
+  <rect x="325" y="825" width="150" height="150" rx="8" fill="#020617" />
+  <text x="400" y="900" font-family="monospace" font-size="20" font-weight="bold" fill="white" text-anchor="middle">SCAN ME</text>
+
+  <text x="400" y="1100" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="bold" fill="#00D1FF" text-anchor="middle">
+    WWW.CLOSETKRAZE.TOP
+  </text>
+</svg>
