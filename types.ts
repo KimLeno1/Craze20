@@ -5,7 +5,7 @@ export type Gender = 'Male' | 'Female' | 'Prefer not to say' | 'MALE' | 'FEMALE'
 export type UserRankTier = 'Newcomer' | 'Stylist' | 'Trendsetter' | 'Fashion Icon' | 'Closet Royalty' | 'Kraze Legend';
 
 export interface RankBenefits {
-  aiTryOnLimit?: number;
+  aiTryOnLimit: number;
   tier: UserRankTier;
   vaultLimit: number;
   ticketsPerPurchase: { tickets: number; perItems: number };
@@ -160,7 +160,9 @@ export interface Supplier {
 export interface User {
   id: string;
   handle: string;
+  name?: string;
   email: string;
+  phone?: string;
   archetype: string;
   rep: number;
   level: number;
@@ -225,6 +227,7 @@ export interface CartItem extends Partial<Product> {
   isBundle?: boolean;
   bundleProducts?: Product[];
   customizationData?: Record<string, string>;
+  tryOnImage?: string;
 }
 
 export enum ViewState {
@@ -402,6 +405,7 @@ export interface PayForMeRequest {
   payerContact?: string;
   message?: string;
   shippingProtocol?: CheckoutProtocol;
+  tryOnImage?: string;
 }
 
 export interface UserPost {
@@ -409,11 +413,24 @@ export interface UserPost {
   userId: string;
   userHandle: string;
   image: string;
+  styleTitle?: string;
+  caption?: string;
+  tags?: string[];
   likes: number;
   dislikes: number;
   reports: number;
   timestamp: string;
   weekId: string;
+}
+
+export interface SocialCycleInfo {
+  lastReset: string;
+  nextReset: string;
+  currentWeekId: string;
+  timeRemainingMs: number;
+  isResetDay: boolean;
+  activePostsCount: number;
+  activeMessagesCount: number;
 }
 
 export interface SocialComment {
@@ -499,4 +516,19 @@ export interface FeedbackMessage {
 export interface PanelContent {
   id: string;
   content: string; // Stored as JSON string if object
+}
+
+export interface WaitlistEntry {
+  id: string;
+  productId: string;
+  productName: string;
+  productPrice: number;
+  productImage?: string;
+  selectedSize?: string;
+  userName: string;
+  email: string;
+  phone: string;
+  preferredChannel: 'whatsapp' | 'email' | 'both';
+  createdAt: string;
+  status: 'WAITING' | 'NOTIFIED' | 'CANCELLED';
 }

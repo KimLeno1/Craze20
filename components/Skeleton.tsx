@@ -18,7 +18,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '', variant = 'r
 
 export const ProductCardSkeleton: React.FC = () => {
   return (
-    <div className="relative rounded-[2rem] border border-zinc-100 bg-white/70 backdrop-blur-sm p-4 space-y-4 shadow-sm overflow-hidden flex flex-col justify-between">
+    <div className="relative rounded-[2rem] border border-zinc-200 bg-white p-4 space-y-4 shadow-sm overflow-hidden flex flex-col justify-between">
       <div className="space-y-3">
         {/* Image Placeholder */}
         <div className="relative aspect-[3/4] w-full rounded-[1.5rem] bg-zinc-100 overflow-hidden border border-zinc-100">

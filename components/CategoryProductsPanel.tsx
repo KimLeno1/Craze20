@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Product, Category, CategoryInfo } from '../types';
 import { CATEGORY_GROUPS } from '../constants';
 import { getImageUrl } from '../lib/imageUtils';
+import LazyImage from './LazyImage';
 import { matchesCategory } from '../lib/categoryUtils';
 
 interface CategoryProductsPanelProps {
@@ -64,7 +65,7 @@ const CategoryProductsPanel: React.FC<CategoryProductsPanelProps> = ({
             {/* Background Hero */}
             <div className="absolute inset-0">
               {categoryInfo?.heroImage ? (
-                <img src={categoryInfo.heroImage} className="w-full h-full object-cover" alt={category} />
+                <LazyImage src={categoryInfo.heroImage} className="w-full h-full object-cover" alt={category} />
               ) : (
                 <div className="w-full h-full bg-zinc-900"></div>
               )}
@@ -111,7 +112,7 @@ const CategoryProductsPanel: React.FC<CategoryProductsPanelProps> = ({
                     className="group space-y-3 text-left"
                   >
                     <div className="aspect-[3/4] overflow-hidden bg-zinc-900 border border-white/5 relative">
-                      <img src={getImageUrl(product.image)} className="w-full h-full object-cover transition-all duration-700" />
+                      <LazyImage src={getImageUrl(product.image)} className="w-full h-full object-cover transition-all duration-700" alt={product.name} />
                       {!!product.isNew && (
                         <div className="absolute top-2 left-2 px-2 py-0.5 bg-[#00D1FF] text-[8px] font-black text-white uppercase tracking-widest">
                           New

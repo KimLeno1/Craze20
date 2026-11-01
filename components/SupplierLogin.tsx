@@ -76,9 +76,9 @@ const SupplierLogin: React.FC<SupplierLoginProps> = ({ onSuccess, onCancel }) =>
       <div className="w-full max-w-lg space-y-10 relative z-10 animate-in fade-in duration-700">
         <div className="text-center space-y-2">
           <h1 className="text-5xl font-black uppercase tracking-[0.25em] transition-colors duration-500" style={{ color: themeColor }}>
-            Node_Terminal
+            Supplier Login
           </h1>
-          <p className="text-[9px] uppercase tracking-[0.4em] text-zinc-500">Logistics Uplink System</p>
+          <p className="text-[9px] uppercase tracking-[0.4em] text-zinc-500">Supplier Portal Access</p>
         </div>
 
         <div className="bg-black border p-10 rounded-[3.5rem] space-y-8 shadow-2xl relative overflow-hidden" style={{ borderColor: `${themeColor}44`, boxShadow: `0 0 100px ${themeColor}11` }}>
@@ -87,14 +87,14 @@ const SupplierLogin: React.FC<SupplierLoginProps> = ({ onSuccess, onCancel }) =>
               className="py-14 space-y-10 text-center animate-in fade-in duration-500"
               role="status"
               aria-busy={status === 'AUTHENTICATING'}
-              aria-label={status === 'SUCCESS' ? "Uplink complete" : "Calibrating node link"}
+              aria-label={status === 'SUCCESS' ? "Login complete" : "Verifying credentials"}
             >
               <div className="space-y-2">
-                <div className="text-[11px] uppercase tracking-[1em] animate-pulse" style={{ color: themeColor }}>
-                  {status === 'SUCCESS' ? 'HANDSHAKE_COMPLETE' : 'CALIBRATING_NODE_LINK'}
+                <div className="text-[11px] uppercase tracking-[0.5em] animate-pulse" style={{ color: themeColor }}>
+                  {status === 'SUCCESS' ? 'LOGIN SUCCESSFUL' : 'VERIFYING CREDENTIALS...'}
                 </div>
                 <div className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest">
-                  Uplink: ESTABLISHED // Protocol: LOGISTICS_NODE
+                  Connecting to supplier portal...
                 </div>
               </div>
               <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden max-w-xs mx-auto">
@@ -109,16 +109,16 @@ const SupplierLogin: React.FC<SupplierLoginProps> = ({ onSuccess, onCancel }) =>
               <form onSubmit={(e) => { e.preventDefault(); setStatus('AUTHENTICATING'); }} className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-[9px] uppercase font-black text-zinc-600 tracking-widest px-1">Operator Handle</label>
+                    <label className="text-[9px] uppercase font-black text-zinc-600 tracking-widest px-1">Username / ID</label>
                     <input 
                       type="text" required value={credentials.username}
                       onChange={e => setCredentials({...credentials, username: e.target.value})}
                       className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-xs font-mono text-white outline-none focus:border-white/20 transition-all placeholder:text-zinc-800"
-                      placeholder="OPERATOR ID"
+                      placeholder="Enter Username or ID"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[9px] uppercase font-black text-zinc-600 tracking-widest px-1">Security Signature</label>
+                    <label className="text-[9px] uppercase font-black text-zinc-600 tracking-widest px-1">Password</label>
                     <input 
                       type="password" required value={credentials.password}
                       onChange={e => setCredentials({...credentials, password: e.target.value})}
@@ -130,7 +130,7 @@ const SupplierLogin: React.FC<SupplierLoginProps> = ({ onSuccess, onCancel }) =>
                 
                 {status === 'ERROR' && (
                   <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-[9px] font-black uppercase text-center rounded-2xl animate-pulse">
-                    AUTHENTICATION_FAILURE // KEY_REJECTION
+                    Invalid credentials. Please try again.
                   </div>
                 )}
 
@@ -140,14 +140,14 @@ const SupplierLogin: React.FC<SupplierLoginProps> = ({ onSuccess, onCancel }) =>
                     onClick={onCancel} 
                     className="flex-1 py-5 bg-zinc-900/50 text-zinc-500 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all"
                   >
-                    ABORT
+                    Cancel
                   </button>
                   <button 
                     type="submit" 
-                    aria-label="Initialize Supplier Uplink Connection"
+                    aria-label="Supplier Sign In"
                     className="flex-[2] py-5 bg-green-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-green-600 active:bg-green-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50" 
                   >
-                    INITIALIZE_UPLINK
+                    Sign In
                   </button>
                 </div>
 
@@ -159,7 +159,7 @@ const SupplierLogin: React.FC<SupplierLoginProps> = ({ onSuccess, onCancel }) =>
                   >
                     <UserPlus className="w-5 h-5 text-zinc-700 group-hover:text-[#f59e0b] group-hover:scale-110 transition-all mb-1" />
                     Register as a Supplier
-                    <span className="text-[7px] text-zinc-700 lowercase italic tracking-tight">Request node activation</span>
+                    <span className="text-[7px] text-zinc-700 tracking-tight">Create supplier account</span>
                   </button>
                 </div>
               </form>

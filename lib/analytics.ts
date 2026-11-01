@@ -36,8 +36,22 @@ export function getPriceBand(price: number): string {
   return 'GH₵800+ (Grail)';
 }
 
+export type PlausibleEventName = 
+  | 'view_product' 
+  | 'add_to_cart' 
+  | 'whatsapp_click' 
+  | 'start_checkout' 
+  | 'complete_purchase'
+  | 'product_share_copy_link'
+  | 'product_share_copy_card'
+  | 'product_share_whatsapp'
+  | 'product_share_native'
+  | 'payforme_share_copy_link'
+  | 'payforme_share_whatsapp'
+  | (string & {});
+
 export function trackPlausibleEvent(
-  eventName: 'view_product' | 'add_to_cart' | 'whatsapp_click' | 'start_checkout' | 'complete_purchase',
+  eventName: PlausibleEventName,
   props: {
     product_id?: string;
     name?: string;

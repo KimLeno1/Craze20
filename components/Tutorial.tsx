@@ -65,25 +65,30 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, onNavigate }) => {
 
   const speak = useCallback((text: string) => {
     if (isMuted) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window) || !window.speechSynthesis) return;
     
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Try to find a high-quality female voice
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => 
-      (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Female')) && 
-      v.lang.startsWith('en')
-    ) || voices.find(v => v.lang.startsWith('en'));
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Try to find a high-quality female voice
+      const voices = (window.speechSynthesis.getVoices && window.speechSynthesis.getVoices()) || [];
+      const preferredVoice = voices.find(v => 
+        v && v.name && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Female')) && 
+        v.lang && v.lang.startsWith('en')
+      ) || voices.find(v => v && v.lang && v.lang.startsWith('en'));
 
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      utterance.pitch = 1.1; // Slightly higher for a chic, professional tone
+      utterance.rate = 0.95; // Slightly slower for clarity
+      speechRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Speech synthesis unavailable or blocked:", e);
     }
-    
-    utterance.pitch = 1.1; // Slightly higher for a chic, professional tone
-    utterance.rate = 0.95; // Slightly slower for clarity
-    speechRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
   }, [isMuted]);
 
   useEffect(() => {
@@ -99,17 +104,25 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, onNavigate }) => {
     if (currentStep < TOUR_STEPS.length - 1) {
       const next = currentStep + 1;
       setCurrentStep(next);
-      onNavigate(TOUR_STEPS[next].view);
+      if (typeof onNavigate === 'function' && TOUR_STEPS[next]?.view) {
+        onNavigate(TOUR_STEPS[next].view);
+      }
     } else {
       handleClose();
     }
   };
 
   const handleClose = () => {
-    window.speechSynthesis.cancel();
+    try {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    } catch {}
     localStorage.setItem('cc-seen-tutorial', 'true');
     setIsExiting(true);
-    setTimeout(onComplete, 500);
+    if (typeof onComplete === 'function') {
+      setTimeout(onComplete, 500);
+    }
   };
 
   const currentData = currentStep >= 0 ? TOUR_STEPS[currentStep] : null;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { WhatsAppIcon } from './WhatsAppIcon';
 import { Product, ViewState } from '../types';
 import { X } from 'lucide-react';
@@ -15,8 +15,8 @@ export const WhatsAppFloatingButton: React.FC<WhatsAppFloatingButtonProps> = ({
   currentView = ViewState.LOBBY,
   selectedProduct = null,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  // Check if already dismissed in the browser session/local storage
+  const isDismissed = typeof window !== 'undefined' && localStorage.getItem('wa-dismissed') === 'true';
 
   if (isDismissed) {
     return null;
@@ -66,22 +66,29 @@ export const WhatsAppFloatingButton: React.FC<WhatsAppFloatingButtonProps> = ({
   const handleDismiss = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDismissed(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wa-dismissed', 'true');
+      const btn = document.getElementById('whatsapp-floating-container');
+      if (btn) {
+        btn.style.display = 'none';
+      }
+    }
   };
 
   return (
-    <div className="fixed right-4 sm:right-6 bottom-20 sm:bottom-8 z-[9999] flex flex-col items-end gap-2 pointer-events-auto transition-all duration-300">
-      {/* Desktop / Tablet Hover Tooltip */}
+    <div 
+      id="whatsapp-floating-container"
+      className="fixed right-4 sm:right-6 bottom-20 sm:bottom-8 z-[9999] flex flex-col items-end gap-2 pointer-events-auto transition-all duration-300 group/btn"
+    >
+      {/* Desktop / Tablet Hover Tooltip (Uses pure CSS group-hover for bulletproof state management) */}
       <div 
-        className={`hidden sm:flex items-center gap-2 bg-zinc-950/95 text-white px-3.5 py-1.5 rounded-full text-[11px] font-mono font-medium shadow-xl border border-white/10 transition-all duration-300 pointer-events-none ${
-          isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
-        }`}
+        className="hidden sm:flex items-center gap-2 bg-zinc-950/95 text-white px-3.5 py-1.5 rounded-full text-[11px] font-mono font-medium shadow-xl border border-white/10 opacity-0 translate-y-2 scale-95 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 group-hover/btn:scale-100 pointer-events-none transition-all duration-300"
       >
         <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
         <span>Chat with Closet Kraze</span>
       </div>
 
-      <div className="relative group/btn">
+      <div className="relative">
         {/* Cancel / Dismiss 'X' Button */}
         <button
           type="button"
@@ -101,15 +108,13 @@ export const WhatsAppFloatingButton: React.FC<WhatsAppFloatingButtonProps> = ({
           rel="noopener noreferrer"
           aria-label="Chat with Closet Kraze on WhatsApp"
           tabIndex={0}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className="group relative flex items-center justify-center w-[60px] h-[60px] rounded-full bg-[#25D366] text-white shadow-[0_10px_25px_rgba(37,211,102,0.4)] hover:shadow-[0_12px_30px_rgba(37,211,102,0.6)] hover:bg-[#20ba5a] active:scale-95 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#25D366]/40 select-none"
+          className="relative flex items-center justify-center w-[60px] h-[60px] rounded-full bg-[#25D366] text-white shadow-[0_10px_25px_rgba(37,211,102,0.4)] hover:shadow-[0_12px_30px_rgba(37,211,102,0.6)] hover:bg-[#20ba5a] active:scale-95 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#25D366]/40 select-none"
         >
           {/* Pulsing ring */}
           <span className="absolute inset-0 rounded-full bg-[#25D366] opacity-30 animate-ping pointer-events-none" />
           
           {/* WhatsApp Icon */}
-          <div className="relative z-10 w-8 h-8 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+          <div className="relative z-10 w-8 h-8 flex items-center justify-center transform group-hover/btn:scale-110 transition-transform duration-300">
             <WhatsAppIcon size={32} title="Chat on WhatsApp" />
           </div>
         </a>

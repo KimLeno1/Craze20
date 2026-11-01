@@ -168,27 +168,27 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative w-full max-w-2xl bg-[#0F52BA]/15 backdrop-blur-[40px] saturate-[200%] border border-[#0F52BA]/40 rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(15,82,186,0.35),inset_0_1px_4px_rgba(255,255,255,0.4)] my-auto"
+        className="relative w-full max-w-2xl bg-white border border-zinc-200 rounded-[2.5rem] overflow-hidden shadow-2xl my-auto text-zinc-900"
       >
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-white/50 hover:text-white transition-colors z-10"
+          className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-zinc-950 transition-colors z-10 cursor-pointer rounded-full hover:bg-zinc-100"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
 
         <div className="p-6 sm:p-10">
           <div className="flex items-center gap-3 mb-8">
-            <div className="p-2 bg-white/15 rounded-lg">
-              <Sparkles className="w-6 h-6 text-white animate-pulse" />
+            <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl">
+              <Sparkles className="w-5 h-5 text-[#0F52BA]" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">What is your dressing style?</h2>
-              <p className="text-blue-100/70 text-xs sm:text-sm font-bold">Step {step + 1} of 3</p>
+              <h2 className="text-xl sm:text-2xl font-serif italic text-zinc-950">What is your dressing style?</h2>
+              <p className="text-zinc-500 text-xs sm:text-sm font-semibold">Step {step + 1} of 3</p>
             </div>
           </div>
 
@@ -201,9 +201,9 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="space-y-2">
-                  <h3 className="text-lg sm:text-xl font-bold text-white">Select Style Archetypes</h3>
-                  <p className="text-blue-100/70 text-xs sm:text-sm">Choose multiple tags that define your aesthetic.</p>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-zinc-900">Select Your Styles</h3>
+                  <p className="text-zinc-500 text-xs sm:text-sm">Choose tags that define your fashion taste.</p>
                 </div>
                 
                 <div className="flex flex-wrap gap-2 sm:gap-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -211,10 +211,10 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
                     <button
                       key={tag}
                       onClick={() => toggleArchetype(tag)}
-                      className={`px-4 py-2 sm:px-6 sm:py-3 rounded-full border text-xs sm:text-sm font-black tracking-wide uppercase transition-all whitespace-nowrap ${
+                      className={`px-4 py-2 sm:px-6 sm:py-3 rounded-full border text-xs sm:text-sm font-black tracking-wide uppercase transition-all whitespace-nowrap cursor-pointer ${
                         selectedArchetypes.includes(tag)
-                          ? 'bg-white border-white text-[#0F52BA] shadow-[0_10px_25px_rgba(255,255,255,0.25)] scale-[1.03]'
-                          : 'bg-white/10 border-white/10 text-white/80 hover:border-white/30 hover:bg-white/15'
+                          ? 'bg-[#0F52BA] border-[#0F52BA] text-white shadow-md scale-[1.02]'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-[#0F52BA]/40 hover:bg-white'
                       }`}
                     >
                       {tag}
@@ -230,9 +230,9 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="space-y-2">
-                  <h3 className="text-lg sm:text-xl font-bold text-white">Preferred Categories</h3>
-                  <p className="text-blue-100/70 text-xs sm:text-sm">Select the types of items you want to see in your feed.</p>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-zinc-900">Preferred Categories</h3>
+                  <p className="text-zinc-500 text-xs sm:text-sm">Select the types of items you want to see in your feed.</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -240,10 +240,10 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
                     <button
                       key={cat}
                       onClick={() => toggleCategory(cat)}
-                      className={`px-4 py-2 sm:px-6 sm:py-3 rounded-full border text-xs sm:text-sm font-black tracking-wide uppercase transition-all whitespace-nowrap ${
+                      className={`px-4 py-2 sm:px-6 sm:py-3 rounded-full border text-xs sm:text-sm font-black tracking-wide uppercase transition-all whitespace-nowrap cursor-pointer ${
                         selectedCategories.includes(cat)
-                          ? 'bg-white border-white text-[#0F52BA] shadow-[0_10px_25px_rgba(255,255,255,0.25)] scale-[1.03]'
-                          : 'bg-white/10 border-white/10 text-white/80 hover:border-white/30 hover:bg-white/15'
+                          ? 'bg-[#0F52BA] border-[#0F52BA] text-white shadow-md scale-[1.02]'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-[#0F52BA]/40 hover:bg-white'
                       }`}
                     >
                       {cat}
@@ -259,9 +259,9 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="space-y-2">
-                  <h3 className="text-lg sm:text-xl font-bold text-white">Gender Preference</h3>
-                  <p className="text-blue-100/70 text-xs sm:text-sm">Help us tailor the silhouettes to your identity.</p>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-zinc-900">Gender Preference</h3>
+                  <p className="text-zinc-500 text-xs sm:text-sm">Help us tailor recommendations to you.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -269,13 +269,13 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
                     <button
                       key={gen}
                       onClick={() => toggleGender(gen)}
-                      className={`p-4 sm:p-6 rounded-2xl border flex flex-col items-center gap-2 sm:gap-3 transition-all ${
+                      className={`p-4 sm:p-6 rounded-2xl border flex flex-col items-center gap-2 sm:gap-3 transition-all cursor-pointer ${
                         selectedGenders.includes(gen)
-                          ? 'bg-white/20 border-white text-white shadow-[0_10px_25px_rgba(255,255,255,0.15)] scale-[1.02]'
-                          : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30 hover:bg-white/10'
+                          ? 'bg-blue-50/80 border-[#0F52BA] text-[#0F52BA] shadow-sm font-black'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-600 hover:border-zinc-300 hover:bg-white font-bold'
                       }`}
                     >
-                      <span className="font-black text-xs sm:text-sm uppercase tracking-widest">{gen}</span>
+                      <span className="text-xs sm:text-sm uppercase tracking-widest">{gen}</span>
                     </button>
                   ))}
                 </div>
@@ -283,32 +283,32 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
             )}
           </AnimatePresence>
 
-          <div className="flex items-center justify-between mt-8 sm:mt-12">
+          <div className="flex items-center justify-between mt-8 sm:mt-12 pt-4 border-t border-zinc-100">
             <div className="flex items-center gap-4 text-sm sm:text-base">
               <button
                 onClick={handleBack}
                 disabled={step === 0}
-                className={`flex items-center gap-2 text-white/50 hover:text-white transition-colors ${
+                className={`flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer ${
                   step === 0 ? 'opacity-0 pointer-events-none' : ''
                 }`}
               >
-                <ChevronLeft className="w-4 h-4 sm:w-5 h-5" />
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 Back
               </button>
               <button
                 onClick={handleSkip}
-                className="text-white/50 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px]"
+                className="text-zinc-400 hover:text-zinc-900 transition-colors font-bold uppercase tracking-widest text-[10px] cursor-pointer"
               >
-                Skip Protocol
+                Skip Quiz
               </button>
             </div>
             <button
               onClick={handleNext}
               disabled={(step === 0 && selectedArchetypes.length === 0) || (step === 1 && selectedCategories.length === 0) || (step === 2 && selectedGenders.length === 0)}
-              className="flex items-center gap-2 px-6 py-2.5 sm:px-8 sm:py-3 bg-white text-[#0F52BA] rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs hover:bg-white/90 hover:scale-[1.02] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 shadow-[0_10px_25px_rgba(255,255,255,0.15)]"
+              className="flex items-center gap-2 px-6 py-2.5 sm:px-8 sm:py-3 bg-[#0F52BA] text-white rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs hover:bg-[#0B132B] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md"
             >
               {step === 2 ? 'Done' : 'Next'}
-              <ChevronRight className="w-4 h-4 sm:w-5 h-5" />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
@@ -318,15 +318,15 @@ export const StyleProtocol: React.FC<StyleProtocolProps> = ({ userId, onComplete
           width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
+          background: #f1f5f9;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.25);
+          background: #cbd5e1;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.45);
+          background: #94a3b8;
           border-radius: 10px;
         }
       `}</style>

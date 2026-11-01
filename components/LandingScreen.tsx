@@ -135,7 +135,7 @@ const LandingScreen: React.FC<LandingScreenProps> = ({ onComplete, onAdminAccess
 
   return (
     <div className={`fixed inset-0 z-[300] flex items-center justify-center p-4 overflow-hidden animate-in fade-in duration-500 ${isGlitching ? 'invert' : ''}`}>
-      <div className="absolute inset-0 bg-white/80 backdrop-blur-2xl" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative z-10 w-full max-w-md animate-in slide-in-from-bottom-12 duration-700">
         <div className="glass-sapphire-main rounded-[3rem] p-6 sm:p-10 md:p-14 group">
           <div className="text-center mb-10">

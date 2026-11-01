@@ -36,7 +36,7 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({
     <>
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-black/40 z-[200] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
 
@@ -47,12 +47,12 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({
           {/* Header */}
           <header className="p-6 sm:p-8 border-b border-zinc-200 flex items-center justify-between bg-white">
             <div className="space-y-1">
-              <h2 className="text-xl sm:text-2xl font-serif italic text-zinc-950 tracking-tighter">Aesthetic Sectors</h2>
-              <div className="text-[7px] sm:text-[8px] font-black text-zinc-400 uppercase tracking-[0.5em]">Sector_Index</div>
+              <h2 className="text-xl sm:text-2xl font-serif italic text-zinc-950 tracking-tighter">Categories</h2>
+              <div className="text-[7px] sm:text-[8px] font-black text-zinc-400 uppercase tracking-[0.5em]">Directory</div>
             </div>
             <button 
               onClick={onClose}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-950 transition-all"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-zinc-50 border border-zinc-200 rounded-full flex items-center justify-center text-zinc-500 hover:text-zinc-950 transition-all"
             >
               <span className="text-lg">✕</span>
             </button>
@@ -63,7 +63,7 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({
               
               {/* Categories List */}
               <div className="space-y-4 sm:space-y-6">
-                <div className="text-[9px] sm:text-[10px] font-black text-zinc-400 uppercase tracking-widest">Select Sector</div>
+                <div className="text-[9px] sm:text-[10px] font-black text-zinc-400 uppercase tracking-widest">Browse Categories</div>
                 <div className="grid grid-cols-1 gap-2 sm:gap-3">
                   {categoriesWithCounts.map((cat) => {
                     const isActive = activeCategory === cat.id;
@@ -74,22 +74,22 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({
                           onSelectCategory(cat.id);
                           onClose();
                         }}
-                        className={`w-full group flex items-center justify-between p-3 sm:p-4 border transition-all ${
-                          isActive ? 'bg-[#00D1FF] border-[#00D1FF] text-white' : 'bg-zinc-50 border-zinc-100 text-zinc-500 hover:border-zinc-300 hover:text-zinc-950'
+                        className={`w-full group flex items-center justify-between p-3 sm:p-4 rounded-2xl border transition-all ${
+                          isActive ? 'bg-[#0F52BA] border-[#0F52BA] text-white shadow-sm' : 'bg-zinc-50 border-zinc-200 text-zinc-600 hover:border-zinc-300 hover:text-zinc-950'
                         }`}
                       >
                         <div className="flex items-center gap-4 sm:gap-6">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 overflow-hidden border border-zinc-200">
-                            <img src={cat.img} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border border-zinc-200">
+                            <img src={cat.img} className="w-full h-full object-cover transition-all duration-500" alt={cat.label} />
                           </div>
                           <div className="text-left">
                             <span className="block text-[10px] sm:text-xs font-black uppercase tracking-widest">{cat.label}</span>
-                            <span className="text-[7px] sm:text-[8px] font-mono opacity-40 uppercase tracking-widest">Sector_{cat.id}</span>
+                            <span className="text-[7px] sm:text-[8px] font-mono opacity-40 uppercase tracking-widest">{cat.id}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 sm:gap-4">
-                          <span className="text-[8px] sm:text-[10px] font-mono opacity-40">{cat.count}</span>
-                          <span className="text-base sm:text-lg opacity-20 group-hover:opacity-100 transition-opacity">→</span>
+                          <span className="text-[8px] sm:text-[10px] font-mono opacity-60">{cat.count}</span>
+                          <span className="text-base sm:text-lg opacity-40 group-hover:opacity-100 transition-opacity">→</span>
                         </div>
                       </button>
                     );
@@ -103,10 +103,10 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({
                   onSelectCategory('All');
                   onClose();
                 }}
-                className="w-full py-4 sm:py-6 border border-zinc-100 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-200 transition-all text-center space-y-1 sm:space-y-2 group"
+                className="w-full py-4 sm:py-6 rounded-2xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300 transition-all text-center space-y-1 sm:space-y-2 group"
               >
-                <div className="text-[9px] sm:text-[10px] font-black text-zinc-400 uppercase tracking-widest group-hover:text-zinc-950 transition-colors">Global Inventory</div>
-                <div className="text-[7px] sm:text-[8px] font-mono text-zinc-300 uppercase tracking-[0.5em]">Access_All_Silhouettes</div>
+                <div className="text-[9px] sm:text-[10px] font-black text-zinc-700 uppercase tracking-widest group-hover:text-zinc-950 transition-colors">All Products</div>
+                <div className="text-[7px] sm:text-[8px] font-mono text-zinc-400 uppercase tracking-[0.3em]">Browse entire collection</div>
               </button>
 
             </div>
@@ -119,9 +119,9 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({
                 onNavigate(ViewState.PROFILE);
                 onClose();
               }}
-              className="w-full py-4 sm:py-5 bg-zinc-950 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:bg-[#00D1FF] transition-all flex items-center justify-center gap-3 sm:gap-4"
+              className="w-full py-4 sm:py-5 rounded-2xl bg-zinc-950 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:bg-[#0F52BA] transition-all flex items-center justify-center gap-3 sm:gap-4 shadow-sm"
             >
-              <span>View My Dossier</span>
+              <span>View My Profile</span>
               <span className="text-base sm:text-lg">→</span>
             </button>
           </footer>

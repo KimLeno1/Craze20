@@ -265,13 +265,13 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
                           <div className="absolute inset-0 flex items-center justify-between px-4 z-20 pointer-events-none">
                             <button 
                               onClick={(e) => { e.stopPropagation(); handlePrevSubImage(idx, product); }}
-                              className="w-10 h-10 rounded-full glass border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:border-white/30 transition-all pointer-events-auto active:scale-90"
+                              className="w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white hover:bg-black/90 transition-all pointer-events-auto active:scale-90 shadow-md"
                             >
                               ←
                             </button>
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleNextSubImage(idx, product); }}
-                              className="w-10 h-10 rounded-full glass border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:border-white/30 transition-all pointer-events-auto active:scale-90"
+                              className="w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white hover:bg-black/90 transition-all pointer-events-auto active:scale-90 shadow-md"
                             >
                               →
                             </button>
@@ -312,7 +312,7 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
                           animate={{ scale: wishlist.includes(product.id) ? [1, 1.4, 0.9, 1.1, 1] : 1 }}
                           transition={{ duration: 0.4, ease: "easeOut" }}
                           className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-300 ${
-                            wishlist.includes(product.id) ? 'bg-[#00D1FF] border-[#00D1FF] text-white shadow-lg shadow-[#00D1FF]/20' : 'glass-light border-white/20 text-white'
+                            wishlist.includes(product.id) ? 'bg-[#00D1FF] border-[#00D1FF] text-white shadow-lg shadow-[#00D1FF]/20' : 'bg-black/60 border-white/20 text-white hover:bg-black/80 shadow-md'
                           }`}
                         >
                           <motion.div
@@ -340,7 +340,7 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
                       <div className="flex flex-col items-center gap-1">
                         <button 
                           onClick={(e) => { e.stopPropagation(); onViewProduct(product); }}
-                          className="w-12 h-12 rounded-full glass-light border border-white/20 text-white flex items-center justify-center"
+                          className="w-12 h-12 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/80 transition-all shadow-md"
                         >
                           <Info size={24} />
                         </button>
@@ -362,10 +362,10 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
                               }).catch(console.error);
                             } else {
                               navigator.clipboard.writeText(`${product.name} - ${shareUrl}`);
-                              toast.success('Neural link established. Copied to buffer.');
+                              toast.success('Link copied to clipboard!');
                             }
                           }}
-                          className="w-12 h-12 rounded-full glass-light border border-white/20 text-white flex items-center justify-center transition-all active:scale-90"
+                          className="w-12 h-12 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/80 transition-all active:scale-90 shadow-md"
                         >
                           <Share2 size={24} />
                         </button>
@@ -411,7 +411,7 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
                           {product.name}
                         </h2>
                         <p className="text-zinc-400 text-[10px] font-medium leading-tight line-clamp-2 uppercase tracking-tighter">
-                          {product.description || "Limited edition architectural precision silhouette from the spring archive."}
+                          {product.description || "Limited edition piece from our collection."}
                         </p>
                       </div>
 
@@ -436,9 +436,9 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
                       className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 pointer-events-auto cursor-pointer"
                       onClick={(e) => { e.stopPropagation(); setShowInstruction(false); }}
                     >
-                      <div className="glass-grey border border-white/10 p-8 rounded-[2rem] text-center space-y-6 max-w-[280px]">
+                      <div className="bg-zinc-950 border border-zinc-800 p-8 rounded-[2rem] text-center space-y-6 max-w-[280px] shadow-2xl">
                         <div className="flex justify-between items-center w-full">
-                          <div className="text-[10px] font-black text-[#00D1FF] uppercase tracking-[0.5em]">Protocol_Active</div>
+                          <div className="text-[10px] font-black text-[#00D1FF] uppercase tracking-[0.5em]">Quick Controls</div>
                           <button 
                             onClick={(e) => { e.stopPropagation(); setShowInstruction(false); }} 
                             className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/10 text-zinc-500 hover:text-white transition-colors"
@@ -458,7 +458,7 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
                           {/* HOLD doesn't exist yet but we keep instruction */}
                         </div>
                         <div className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.3em] pt-4 border-t border-white/5">
-                          Universal Gesture System
+                          Shortcuts
                           <br/><span className="text-[#00D1FF] mt-2 inline-block">Tap anywhere to dismiss</span>
                         </div>
                       </div>
@@ -483,14 +483,14 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
         <div className="flex-1 flex justify-center">
           <button 
             onClick={handleEditTarget}
-            className="pointer-events-auto flex items-center gap-6 px-10 py-4 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2rem] text-white shadow-[0_20px_40px_rgba(0,0,0,0.5)] active:scale-95 transition-all group"
+            className="pointer-events-auto flex items-center gap-6 px-10 py-4 bg-zinc-950 border border-zinc-700 rounded-[2rem] text-white shadow-2xl active:scale-95 transition-all group"
           >
             <div className="flex flex-col items-center">
               <span className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.4em] mb-1">Target</span>
               <span className="text-sm font-mono font-black text-rose-500 group-hover:text-white transition-colors">{haulTarget === 0 ? '∞' : haulTarget}</span>
             </div>
             
-            <div className="w-px h-8 bg-white/10" />
+            <div className="w-px h-8 bg-zinc-800" />
             
             <div className="flex flex-col items-center">
               <span className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.4em] mb-1">Acquired</span>
@@ -500,9 +500,9 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
             </div>
             
             <div className="hidden sm:flex flex-col items-start ml-2">
-              <span className="text-[7px] font-black text-zinc-600 uppercase tracking-widest leading-none">Status</span>
+              <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest leading-none">Status</span>
               <span className="text-[9px] font-black uppercase text-white tracking-widest">
-                {haulTarget === 0 ? 'Infinite_Protocol' : cartCount >= haulTarget ? 'Quota_Met' : 'Seeking_Silhouettes'}
+                {haulTarget === 0 ? 'Browsing' : cartCount >= haulTarget ? 'Goal Reached' : 'Collecting Items'}
               </span>
             </div>
           </button>
@@ -512,8 +512,8 @@ const ScrollMode: React.FC<ScrollModeProps> = ({
         <div className="flex items-center gap-3 pointer-events-auto">
           <button
             onClick={handleFilterToggle}
-            className="w-12 h-12 md:w-14 md:h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl flex flex-col items-center justify-center text-white hover:bg-[#00D1FF] hover:text-white transition-all group relative"
-            title="Sort Sector"
+            className="w-12 h-12 md:w-14 md:h-14 bg-zinc-950 border border-zinc-700 rounded-2xl flex flex-col items-center justify-center text-white hover:bg-[#00D1FF] hover:text-white transition-all group relative shadow-2xl"
+            title="Filter Products"
           >
             <div className="flex flex-col items-center gap-0.5">
                <div className={`w-4 h-0.5 bg-current rounded-full transition-all ${filter ? 'w-2' : ''}`} />

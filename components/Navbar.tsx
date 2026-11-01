@@ -11,7 +11,8 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, logoUrl }) => {
   const navItems = [
     { label: 'Flash Sale', view: ViewState.FAMOUS, icon: '⚡' },
-    { label: 'Outfits', view: ViewState.BUNDLES, icon: '🎁' },
+    { label: 'Kits & Bundles', view: ViewState.BUNDLES, icon: '🎁' },
+    { label: 'Fitting & AI Stylist', view: ViewState.TRY_ON, icon: '✨' },
   ];
 
   return (

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { CartItem, ViewState, PromoCode, RankBenefits, UserStats } from '../types';
 import { getImageUrl } from '../lib/imageUtils';
+import LazyImage from './LazyImage';
 import { databaseService } from '../services/databaseService';
 import { toast } from 'sonner';
-import { Gift, Share2, Copy, Plus, MapPin, CheckCircle, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
+import { Gift, Share2, Copy, Plus, MapPin, CheckCircle, ArrowLeft, RefreshCw, AlertCircle, Smartphone, Tag, ShieldCheck, Loader2 } from 'lucide-react';
+import { WhatsAppIcon } from './WhatsAppIcon';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -299,7 +301,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   style={{ animationDelay: `${idx * 100}ms` }}
                 >
                   <div className="w-20 sm:w-32 md:w-40 aspect-[3/4] bg-zinc-50 group-hover:-rotate-2 transition-transform duration-700 overflow-hidden relative border border-zinc-100 rounded-xl shrink-0">
-                    <img src={getImageUrl(item.image)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={item.name} />
+                    <LazyImage src={getImageUrl(item.image)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={item.name} />
                   </div>
                   <div className="flex-1 flex flex-col justify-between py-0.5">
                     <div className="space-y-3">
@@ -422,16 +424,24 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       if (onNavigate) onNavigate(ViewState.CHECKOUT); 
                     }, 500);
                   }} 
-                  className={`w-full py-8 md:py-10 text-[12px] md:text-[14px] font-black uppercase tracking-[0.6em] rounded-3xl active:scale-95 transition-all duration-300 relative overflow-hidden group ${
+                  className={`w-full py-8 md:py-10 text-[12px] md:text-[14px] font-black uppercase tracking-[0.6em] rounded-3xl active:scale-95 transition-all duration-300 relative overflow-hidden group cursor-pointer ${
                     isFlashing 
                       ? 'bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-600 text-black shadow-[0_0_80px_rgba(251,191,36,1)] scale-[1.02] border-2 border-[#FFE600]' 
                       : 'bg-zinc-950 text-white hover:bg-blue-600 shadow-xl hover:shadow-blue-500/20'
                   }`}
+                  disabled={isFlashing}
                 >
-                  <span className="relative z-10 font-black">
-                    {currentView === ViewState.SCROLL_MODE && haulTarget > 0 && items.reduce((acc, i) => acc + i.quantity, 0) < haulTarget 
-                      ? 'Incomplete Cart - Finalize?' 
-                      : 'Own It'}
+                  <span className="relative z-10 font-black flex items-center justify-center gap-3">
+                    {isFlashing ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin text-black" />
+                        <span>Securing Vault Order...</span>
+                      </>
+                    ) : (
+                      currentView === ViewState.SCROLL_MODE && haulTarget > 0 && items.reduce((acc, i) => acc + i.quantity, 0) < haulTarget 
+                        ? 'Incomplete Cart - Finalize?' 
+                        : 'Own It'
+                    )}
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 </button>
@@ -631,17 +641,40 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
             ) : (
               /* SUCCESS STATE - LINK SHARING */
-              <div className="space-y-6 animate-in zoom-in-95 duration-300 text-center">
-                <div className="w-16 h-16 bg-blue-50 text-blue-600 border border-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Gift className="w-8 h-8" />
+              <div className="space-y-5 animate-in zoom-in-95 duration-300 text-center">
+                <div className="w-14 h-14 bg-blue-50 text-blue-600 border border-blue-100 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                  <Gift className="w-7 h-7" />
                 </div>
                 
-                <div className="space-y-2">
-                  <h4 className="text-lg font-serif italic text-zinc-950">Sponsorship Request Secured!</h4>
-                  <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
-                    The sponsorship uplink is secured. Send the generated URL link to your sponsor or contributor.
+                <div className="space-y-1">
+                  <h4 className="text-base sm:text-lg font-serif italic text-zinc-950">Sponsorship Link Ready!</h4>
+                  <p className="text-[10px] text-zinc-500 max-w-sm mx-auto">
+                    Includes product photo, size, price, and direct payment link.
                   </p>
                 </div>
+
+                {/* Visual Product Spec Card */}
+                {selectedCartItem && (
+                  <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 text-left flex gap-3.5 items-center">
+                    <div className="w-16 h-20 rounded-xl bg-white overflow-hidden shrink-0 border border-zinc-200 shadow-sm relative">
+                      <img 
+                        src={getImageUrl((selectedCartItem.images && selectedCartItem.images.length > 0) ? selectedCartItem.images[0] : selectedCartItem.image)}
+                        alt={selectedCartItem.name}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="text-[9px] font-mono font-bold text-blue-600 uppercase tracking-wider">{selectedCartItem.category || 'Vault Item'}</p>
+                      <h5 className="text-xs font-bold text-zinc-950 truncate">{selectedCartItem.name}</h5>
+                      <p className="text-xs font-mono font-black text-zinc-900">GH₵{selectedCartItem.price * selectedCartItem.quantity}</p>
+                      <div className="inline-flex items-center gap-1 text-[9px] font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        <Tag className="w-2.5 h-2.5" />
+                        <span>Size: {selectedCartItem.selectedSize || 'Standard'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-3 shadow-inner">
                   <p className="text-[8px] text-blue-600 font-black uppercase tracking-widest text-left">Sponsorship Uplink URL</p>
@@ -661,6 +694,51 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       Copy
                     </button>
                   </div>
+                </div>
+
+                {/* Share Actions */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      if (!selectedCartItem) return;
+                      const firstImg = getImageUrl((selectedCartItem.images && selectedCartItem.images.length > 0) ? selectedCartItem.images[0] : selectedCartItem.image);
+                      const absImg = firstImg.startsWith('http') ? firstImg : `${window.location.origin}${firstImg}`;
+                      const msg = [
+                        `🌟 *CLOSET KRAZE SPONSORSHIP REQUEST* 🌟`,
+                        ``,
+                        `📦 *Item:* ${selectedCartItem.name}`,
+                        `📏 *Size:* ${selectedCartItem.selectedSize || 'Standard'}`,
+                        `💰 *Total:* GH₵${selectedCartItem.price * selectedCartItem.quantity}`,
+                        `💬 *Message:* "Could you please sponsor this piece for me on Closet Kraze?"`,
+                        ``,
+                        `🖼️ *Item Preview:* ${absImg}`,
+                        ``,
+                        `🔗 *Sponsor Here:* ${paymentLink.url}`
+                      ].join('\n');
+                      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                    }}
+                    className="w-full py-3 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  >
+                    <WhatsAppIcon size={16} />
+                    <span>Share on WhatsApp (With Image & Specs)</span>
+                  </button>
+
+                  {navigator.share && (
+                    <button
+                      onClick={() => {
+                        if (!selectedCartItem) return;
+                        navigator.share({
+                          title: `Sponsor ${selectedCartItem.name}`,
+                          text: `[Size: ${selectedCartItem.selectedSize || 'Standard'} • GH₵${selectedCartItem.price * selectedCartItem.quantity}] Could you please sponsor this piece for me on Closet Kraze?`,
+                          url: paymentLink.url
+                        }).catch(() => {});
+                      }}
+                      className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-[9px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-zinc-200"
+                    >
+                      <Smartphone className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Device Share</span>
+                    </button>
+                  )}
                 </div>
 
                 <button

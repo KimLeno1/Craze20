@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PayForMeRequest, PayForMeStatus } from '../types';
 import { databaseService } from '../services/databaseService';
 import { toast } from 'sonner';
-import { Wallet, ShieldCheck, Heart, User, Info, Smartphone, CheckCircle2 } from 'lucide-react';
+import { Wallet, ShieldCheck, Heart, User, Info, Smartphone, CheckCircle2, Tag, MessageSquare, Sparkles } from 'lucide-react';
+import { getImageUrl } from '../lib/imageUtils';
 
 const PayForMeSharedView: React.FC = () => {
   const { userName, productId, requestId } = useParams<{ userName: string; productId: string; requestId: string }>();
@@ -22,7 +23,8 @@ const PayForMeSharedView: React.FC = () => {
         const found = await databaseService.getPayForMeRequestById(requestId);
         
         // Verification logic as requested
-        if (found && found.userName === userName && found.items[0].id === productId) {
+        const targetItem = (Array.isArray(found?.items) && found.items[0]) || (found?.items as any);
+        if (found && found.userName === userName && (targetItem?.id === productId || !productId)) {
           setRequest(found);
           setPaymentAmount(found.total - found.amountPaid);
         } else {
@@ -143,29 +145,41 @@ const PayForMeSharedView: React.FC = () => {
 
   const remaining = request.total - request.amountPaid;
   const isPaid = request.status === PayForMeStatus.PAID || request.status === PayForMeStatus.CLAIMED;
+  const targetProduct = (Array.isArray(request.items) && request.items[0]) || (request.items as any) || { id: 'item', name: 'Item', image: '', selectedSize: 'Standard' };
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950 selection:bg-blue-600 selection:text-white">
-      <div className="max-w-2xl mx-auto px-6 py-12 md:py-20 space-y-12">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-20 space-y-8 sm:space-y-12">
         {/* Header */}
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-3 sm:space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full">
             <ShieldCheck className="w-3 h-3 text-blue-600" />
             <span className="text-[8px] font-black uppercase tracking-widest text-blue-600">Secure Sponsorship Uplink</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-serif italic tracking-tighter leading-none text-zinc-950">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif italic tracking-tight leading-none text-zinc-950">
             Authorized <br/> <span className="text-zinc-950 not-italic font-black uppercase">Sponsorship</span>
           </h1>
-          <p className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.4em]">Protocol ID: {request.id}</p>
+          <p className="text-zinc-400 text-[10px] font-mono uppercase tracking-[0.2em]">Protocol ID: {request.id}</p>
         </div>
 
         {/* Product Card */}
-        <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-zinc-100 space-y-6 md:space-y-8 relative overflow-hidden group shadow-sm">
+        <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2.5rem] border border-zinc-100 space-y-5 sm:space-y-8 relative overflow-hidden group shadow-sm">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-4xl md:text-6xl font-black pointer-events-none uppercase text-zinc-950">TARGET</div>
           
           <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center">
-            <div className="w-40 h-54 md:w-48 md:h-64 rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 shrink-0 shadow-xl skew-y-1">
-              <img src={request.items[0].image} className="w-full h-full object-cover" alt={request.items[0].name} />
+            <div className="w-40 h-54 md:w-48 md:h-64 rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 shrink-0 shadow-xl skew-y-1 bg-zinc-100 relative">
+              <img 
+                src={getImageUrl(request.tryOnImage || targetProduct?.tryOnImage || ((targetProduct.images && targetProduct.images.length > 0) ? targetProduct.images[0] : targetProduct.image))} 
+                className="w-full h-full object-cover" 
+                alt={targetProduct.name} 
+                referrerPolicy="no-referrer"
+              />
+              {(request.tryOnImage || targetProduct?.tryOnImage) && (
+                <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-full text-[8px] font-mono font-bold text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5 text-purple-400" />
+                  AI Try-On Look
+                </div>
+              )}
             </div>
             <div className="flex-1 space-y-4 w-full text-center md:text-left">
               <div className="space-y-1">
@@ -173,12 +187,28 @@ const PayForMeSharedView: React.FC = () => {
                 <h2 className="text-2xl md:text-3xl font-serif italic font-medium text-zinc-950">@{request.userName}</h2>
               </div>
               
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <p className="text-[9px] md:text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Acquisition Target</p>
-                <h3 className="text-lg md:text-xl font-bold uppercase tracking-tight leading-tight text-zinc-950">{request.items[0].name}</h3>
+                <h3 className="text-lg md:text-xl font-bold uppercase tracking-tight leading-tight text-zinc-950">{targetProduct.name}</h3>
+                
+                {/* Size Badge */}
+                <div className="inline-flex items-center gap-1.5 text-[9px] md:text-[10px] font-mono font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                  <Tag className="w-3 h-3" />
+                  <span>Size: {targetProduct.selectedSize || 'Standard'}</span>
+                </div>
               </div>
 
-              <div className="pt-4 space-y-4">
+              {/* Requester Message Note */}
+              {request.message && (
+                <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100 flex items-start gap-2 text-left">
+                  <MessageSquare className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <p className="text-xs text-zinc-600 italic">
+                    "{request.message}"
+                  </p>
+                </div>
+              )}
+
+              <div className="pt-2 space-y-3">
                 <div className="flex justify-between items-end border-b border-zinc-100 pb-2">
                   <span className="text-[7px] md:text-[8px] font-black text-zinc-400 uppercase tracking-widest">Valuation</span>
                   <span className="text-xl md:text-2xl font-black text-zinc-950">GH₵{request.total}</span>

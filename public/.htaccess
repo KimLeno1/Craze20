@@ -1,14 +1,15 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Route API requests to api/index.php
+  # Handle API requests if PHP script exists
+  RewriteCond %{DOCUMENT_ROOT}/api/index.php -f
   RewriteRule ^api/(.*)$ api/index.php [QSA,L]
 
   # Handle SPA Routing
   # If the requested file or directory does not exist, serve index.html
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ index.html [L]
+  RewriteRule . index.html [L]
 </IfModule>
 
 # Security: Deny access to sensitive files

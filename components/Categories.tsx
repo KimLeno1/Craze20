@@ -12,7 +12,7 @@ interface CategoriesProps {
 
 const Categories: React.FC<CategoriesProps> = ({ categories, onSelectCategory, onNavigate }) => {
   return (
-    <div className="p-8 space-y-12 pb-32">
+    <div className="px-4 py-4 sm:px-6 sm:py-6 max-w-7xl mx-auto space-y-8 pb-32">
       <motion.header
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

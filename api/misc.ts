@@ -6,6 +6,17 @@ import crypto from 'crypto';
 import { authenticate, authenticateAny, authorize, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
+
+const safeJsonParse = (val: any, fallback: any = []) => {
+  if (!val) return fallback;
+  if (typeof val !== 'string') return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return fallback;
+  }
+};
+
 const getPaystackSecret = () => {
   const raw = process.env.PAYSTACK_SECRET || process.env.PAYSTACK_SECRET_KEY;
   if (raw && raw.startsWith('Ask_test_')) {
@@ -20,7 +31,7 @@ router.get('/bundles', async (req, res) => {
     const rows = await db.all('SELECT * FROM bundles');
     const bundles = rows.map(row => ({
       ...row,
-      products: row.products ? JSON.parse(row.products) : []
+      products: safeJsonParse(row.products, [])
     }));
     res.json(bundles);
   } catch (error) {
@@ -210,11 +221,34 @@ router.post('/price-anomalies', authenticateAny, authorize(['ADMIN', 'SUPPLIER']
 router.get('/pay-for-me', async (req, res) => {
   try {
     const rows = await db.all('SELECT * FROM pay_for_me_requests');
-    const requests = rows.map(row => ({
-      ...row,
-      items: row.items ? JSON.parse(row.items) : [],
-      shippingProtocol: row.shippingProtocol ? (row.shippingProtocol.startsWith('{') ? JSON.parse(row.shippingProtocol) : row.shippingProtocol) : undefined
-    }));
+    const requests = (rows || []).map(row => {
+      let parsedItems = [];
+      try {
+        if (row.items) {
+          const parsed = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
+          parsedItems = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+        }
+      } catch (e) {
+        parsedItems = [];
+      }
+
+      let parsedProtocol = undefined;
+      try {
+        if (row.shippingProtocol) {
+          parsedProtocol = (typeof row.shippingProtocol === 'string' && row.shippingProtocol.startsWith('{'))
+            ? JSON.parse(row.shippingProtocol)
+            : row.shippingProtocol;
+        }
+      } catch (e) {
+        parsedProtocol = undefined;
+      }
+
+      return {
+        ...row,
+        items: parsedItems,
+        shippingProtocol: parsedProtocol
+      };
+    });
     res.json(requests);
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to fetch pay-for-me requests' });
@@ -228,10 +262,31 @@ router.get('/pay-for-me/:requestId', async (req, res) => {
     if (!row) {
       return res.status(404).json({ status: 'error', message: 'Request not found' });
     }
+    let parsedItems = [];
+    try {
+      if (row.items) {
+        const parsed = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
+        parsedItems = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+      }
+    } catch (e) {
+      parsedItems = [];
+    }
+
+    let parsedProtocol = undefined;
+    try {
+      if (row.shippingProtocol) {
+        parsedProtocol = (typeof row.shippingProtocol === 'string' && row.shippingProtocol.startsWith('{'))
+          ? JSON.parse(row.shippingProtocol)
+          : row.shippingProtocol;
+      }
+    } catch (e) {
+      parsedProtocol = undefined;
+    }
+
     res.json({
       ...row,
-      items: row.items ? JSON.parse(row.items) : [],
-      shippingProtocol: row.shippingProtocol ? (row.shippingProtocol.startsWith('{') ? JSON.parse(row.shippingProtocol) : row.shippingProtocol) : undefined
+      items: parsedItems,
+      shippingProtocol: parsedProtocol
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to fetch request' });
@@ -248,6 +303,44 @@ router.post('/pay-for-me', [
   }
   const { id, userId, userName, items, total, amountPaid, status, timestamp, payerName, payerContact, message, shippingProtocol } = req.body;
   try {
+    // Check if this is an update to an existing request or a new creation
+    let isNew = true;
+    if (id) {
+      const existing = await db.get('SELECT id FROM pay_for_me_requests WHERE id = ?', [id]);
+      if (existing) {
+        isNew = false;
+      }
+    }
+
+    // If new request, enforce tier slot limit
+    if (isNew) {
+      const user = await db.get('SELECT rep FROM users WHERE id = ?', [userId]);
+      const userRep = user ? (Number(user.rep) || 0) : 0;
+      
+      const getTierPayForMeSlots = (rep: number): { slots: number; tier: string } => {
+        if (rep >= 60000) return { slots: 15, tier: 'Kraze Legend' };
+        if (rep >= 25000) return { slots: 8, tier: 'Closet Royalty' };
+        if (rep >= 10000) return { slots: 5, tier: 'Fashion Icon' };
+        if (rep >= 4000) return { slots: 3, tier: 'Trendsetter' };
+        if (rep >= 1500) return { slots: 2, tier: 'Stylist' };
+        return { slots: 1, tier: 'Newcomer' };
+      };
+
+      const { slots: maxSlots, tier: tierName } = getTierPayForMeSlots(userRep);
+      const activeCountRow = await db.get(
+        'SELECT COUNT(*) as cnt FROM pay_for_me_requests WHERE (userId = ? OR userName = ?) AND status IN ("PENDING", "APPROVED")',
+        [userId, userName]
+      );
+      const activeCount = activeCountRow?.cnt ? Number(activeCountRow.cnt) : 0;
+
+      if (activeCount >= maxSlots) {
+        return res.status(403).json({ 
+          status: 'error', 
+          message: `Tier slot limit reached: Your ${tierName} tier allows ${maxSlots} active Pay For Me request${maxSlots > 1 ? 's' : ''}. Earn REP points to level up and unlock more slots!` 
+        });
+      }
+    }
+
     // Stock Check
     const pfmItems = Array.isArray(items) ? items : [];
     for (const item of pfmItems) {
@@ -1243,7 +1336,7 @@ router.post('/paystack/webhook', async (req, res) => {
                   
                   // Update Supplier Wallet
                   const supplierWallet = await db.get('SELECT * FROM wallets WHERE id = ?', [sId]) || { id: sId, balance: 0, transactions: '[]' };
-                  const supplierTxns = JSON.parse(supplierWallet.transactions || '[]');
+                  const supplierTxns = safeJsonParse(supplierWallet.transactions, []);
                   supplierTxns.push({
                     id: Date.now().toString() + sId,
                     type: 'EARNING',
@@ -1259,7 +1352,7 @@ router.post('/paystack/webhook', async (req, res) => {
                   // Update Admin Wallet (Commission)
                   const commission = amt * 0.1; // 10% commission
                   const adminWallet = await db.get('SELECT * FROM wallets WHERE id = ?', ['ADMIN_WALLET']) || { id: 'ADMIN_WALLET', balance: 0, transactions: '[]' };
-                  const adminTxns = JSON.parse(adminWallet.transactions || '[]');
+                  const adminTxns = safeJsonParse(adminWallet.transactions, []);
                   adminTxns.push({
                     id: Date.now().toString() + 'ADMIN',
                     type: 'COMMISSION',
@@ -1290,7 +1383,7 @@ router.post('/paystack/webhook', async (req, res) => {
 router.get('/panel-content/:id', async (req, res) => {
   try {
     const row = await db.get('SELECT content FROM panel_content WHERE id = ?', [req.params.id]);
-    res.json(row ? JSON.parse(row.content) : null);
+    res.json(row ? safeJsonParse(row.content, null) : null);
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to fetch panel content' });
   }

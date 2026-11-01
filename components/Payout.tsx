@@ -33,19 +33,19 @@ const Payout: React.FC<PayoutProps> = ({ onNavigate, balances = { coins: 4250, g
         <div className="space-y-4">
           <div className="flex items-center gap-3">
              <div className="w-2 h-2 rounded-full bg-[#EC4899] glow-text animate-pulse"></div>
-             <span className="text-[10px] font-black text-[#EC4899] uppercase tracking-[0.4em]">Exchange Protocol</span>
+             <span className="text-[10px] font-black text-[#EC4899] uppercase tracking-[0.4em]">Rewards</span>
           </div>
           <h1 className="text-5xl md:text-8xl font-serif italic text-white tracking-tighter leading-none">
-            Payout <span className="text-white not-italic font-sans font-black uppercase glow-text">Terminal</span>
+            Reward <span className="text-white not-italic font-sans font-black uppercase glow-text">Center</span>
           </h1>
-          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.5em]">Dress to be addressed // Authorization Status: ACTIVE</p>
+          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Redeem points for discounts and rewards</p>
         </div>
 
         <button 
           onClick={() => onNavigate(ViewState.PROFILE)}
           className="text-[10px] font-black text-zinc-500 hover:text-white uppercase tracking-widest border border-white/10 px-6 py-3 rounded-xl transition-all"
         >
-          ← Return to Dossier
+          ← Return to Profile
         </button>
       </header>
 
@@ -73,7 +73,7 @@ const Payout: React.FC<PayoutProps> = ({ onNavigate, balances = { coins: 4250, g
             onClick={() => setActiveTab('REDEEM')}
             className={`text-sm font-black uppercase tracking-[0.3em] pb-2 transition-all border-b-2 ${activeTab === 'REDEEM' ? 'text-white border-[#EC4899]' : 'text-zinc-600 border-transparent hover:text-zinc-400'}`}
           >
-            Redeem Assets
+            Redeem Rewards
           </button>
           <button 
             onClick={() => setActiveTab('HISTORY')}
@@ -115,7 +115,7 @@ const Payout: React.FC<PayoutProps> = ({ onNavigate, balances = { coins: 4250, g
                       : 'bg-zinc-900 text-zinc-700 cursor-not-allowed'
                     }`}
                   >
-                    {canAfford ? 'Initialize Withdrawal' : 'Insufficient Liquidity'}
+                    {canAfford ? 'Claim Reward' : 'Not Enough Points'}
                   </button>
                 </div>
               );
@@ -126,10 +126,10 @@ const Payout: React.FC<PayoutProps> = ({ onNavigate, balances = { coins: 4250, g
              <table className="w-full text-left">
                 <thead className="bg-white/5 border-b border-white/5 text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em]">
                    <tr>
-                      <th className="px-10 py-6">Operation_ID</th>
+                      <th className="px-10 py-6">ID</th>
                       <th className="px-10 py-6">Type</th>
-                      <th className="px-10 py-6 text-right">Magnitude</th>
-                      <th className="px-10 py-6 text-right">Timestamp</th>
+                      <th className="px-10 py-6 text-right">Amount</th>
+                      <th className="px-10 py-6 text-right">Date</th>
                    </tr>
                 </thead>
                 <tbody className="text-[10px] font-mono text-zinc-400">
@@ -137,7 +137,7 @@ const Payout: React.FC<PayoutProps> = ({ onNavigate, balances = { coins: 4250, g
                      { id: 'TX_9921', type: 'ARENA_WIN_BONUS', value: '+150 COINS', time: '2h ago' },
                      { id: 'TX_9918', type: 'REWARD_REDEEM', value: '-1000 COINS', time: '1d ago' },
                      { id: 'TX_9915', type: 'GAME_RPS_REWARD', value: '+50 GEMS', time: '2d ago' },
-                     { id: 'TX_9912', type: 'BUNDLE_ACQUISITION', value: '+450 XP', time: '3d ago' },
+                     { id: 'TX_9912', type: 'BUNDLE_PURCHASE', value: '+450 XP', time: '3d ago' },
                    ].map((tx, idx) => (
                      <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                         <td className="px-10 py-6 font-black text-white">{tx.id}</td>

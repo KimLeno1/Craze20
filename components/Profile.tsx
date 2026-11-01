@@ -145,12 +145,12 @@ const Profile: React.FC<ProfileProps> = ({
   };
 
   return (
-    <div className="p-4 sm:p-8 md:p-16 space-y-8 sm:space-y-12 md:space-y-16 pb-32 sm:pb-40 animate-in fade-in duration-700 max-w-7xl mx-auto">
+    <div className="px-4 py-3 sm:px-6 sm:py-5 md:px-8 md:py-6 space-y-6 sm:space-y-8 pb-32 sm:pb-40 animate-in fade-in duration-700 max-w-7xl mx-auto">
       <header className="flex flex-col lg:flex-row justify-between items-start gap-6 sm:gap-8">
         <div className="space-y-3 sm:space-y-4">
           <div className="flex items-center gap-3">
              <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></div>
-             <span className="text-[8px] sm:text-[10px] font-black text-blue-600 uppercase tracking-[0.4em]">Archiver Dossier</span>
+             <span className="text-[8px] sm:text-[10px] font-black text-blue-600 uppercase tracking-[0.4em]">Member Profile</span>
           </div>
           <div className="flex items-center gap-4">
             {isEditingHandle ? (
@@ -240,7 +240,7 @@ const Profile: React.FC<ProfileProps> = ({
           }`}
         >
           <Archive className="w-3.5 h-3.5 shrink-0" />
-          <span>Acquisitions & Wishlist</span>
+          <span>Orders & Wishlist</span>
           {(userOrders.length > 0 || outfits.length > 0) && (
             <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
               activeTab === 'vault' ? 'bg-white text-blue-600' : 'bg-blue-600/20 text-blue-600'
@@ -259,7 +259,7 @@ const Profile: React.FC<ProfileProps> = ({
           }`}
         >
           <MapPin className="w-3.5 h-3.5 shrink-0" />
-          <span>Logistics</span>
+          <span>Delivery Addresses</span>
           {protocols.length > 0 && (
             <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
               activeTab === 'logistics' ? 'bg-black text-white' : 'bg-zinc-500/20 text-zinc-450'
@@ -445,15 +445,15 @@ const Profile: React.FC<ProfileProps> = ({
 
                       <div className="space-y-2 relative z-10">
                         <h4 className="text-xs md:text-sm font-black uppercase tracking-widest text-zinc-900 group-hover:text-[#00D1FF] transition-colors">
-                          {ach.unlocked ? ach.title : 'Signal_Encrypted'}
+                          {ach.unlocked ? ach.title : 'Locked Badge'}
                         </h4>
                         <p className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-tight leading-relaxed line-clamp-2 italic">
-                          {ach.unlocked || ach.progress > 0 ? ach.description : 'Analyze circuit to decrypt protocol requirements.'}
+                          {ach.unlocked || ach.progress > 0 ? ach.description : 'Complete more activities to unlock this badge.'}
                         </p>
                       </div>
 
                       <div className="mt-6 md:mt-8 flex justify-between items-center relative z-10">
-                         <div className="text-[8px] font-black text-zinc-650 uppercase tracking-[0.2em]">Rep Yield: +{ach.rewardREP}</div>
+                         <div className="text-[8px] font-black text-zinc-650 uppercase tracking-[0.2em]">REP Reward: +{ach.rewardREP}</div>
                          <div className="text-[9px] md:text-[10px] font-mono font-black text-zinc-400">
                            {ach.progress} <span className="text-zinc-700">/</span> {ach.goal}
                          </div>
@@ -480,7 +480,7 @@ const Profile: React.FC<ProfileProps> = ({
                   [...Array(3)].map((_, i) => <OrderSkeleton key={i} />)
                 ) : userOrders.length === 0 ? (
                   <div className="py-16 md:py-20 text-center bg-white border-dashed border-zinc-200 rounded-[2.5rem] md:rounded-[3rem] opacity-30">
-                     <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.5em]">No physical acquisitions detected in the archive.</p>
+                     <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em]">No past orders found.</p>
                   </div>
                 ) : (
                   userOrders.map(order => (
@@ -495,7 +495,7 @@ const Profile: React.FC<ProfileProps> = ({
                          </div>
                          <div className="space-y-1">
                             <div className="text-[9px] md:text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ref: {order.id}</div>
-                            <div className="text-xs md:text-sm font-black uppercase text-zinc-950">{order.items.length} Signal{order.items.length > 1 ? 's' : ''} Secured</div>
+                            <div className="text-xs md:text-sm font-black uppercase text-zinc-950">{order.items.length} Item{order.items.length > 1 ? 's' : ''} Ordered</div>
                             <div className="text-[8px] font-bold text-zinc-650 uppercase tracking-widest">{new Date(order.timestamp).toLocaleDateString('en-GB', { timeZone: 'GMT' })}</div>
                          </div>
                       </div>
@@ -523,11 +523,11 @@ const Profile: React.FC<ProfileProps> = ({
               </div>
             </section>
 
-            {/* Wishlist */}
+            {/* Saved Outfits */}
             <section className="space-y-8 md:space-y-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6 flex-1">
-                  <h3 className={`text-xl md:text-2xl font-serif italic whitespace-nowrap ${theme === 'dark' ? 'text-zinc-900' : 'text-black'}`}>Wishlist</h3>
+                  <h3 className={`text-xl md:text-2xl font-serif italic whitespace-nowrap ${theme === 'dark' ? 'text-zinc-900' : 'text-black'}`}>Saved Outfits</h3>
                   <div className="h-px w-full bg-white/5"></div>
                 </div>
               </div>
@@ -629,7 +629,7 @@ const Profile: React.FC<ProfileProps> = ({
                                   await databaseService.saveUserLogistics(userId, newProtocols);
                                   onUpdateProtocols(newProtocols);
                                   setEditingProtocolId(null);
-                                  toast.success("Protocol Updated");
+                                  toast.success("Address Updated");
                                 }
                               }
                             }}
@@ -666,7 +666,7 @@ const Profile: React.FC<ProfileProps> = ({
                             }}
                             className="text-[8px] font-black text-[#0F52BA] uppercase tracking-widest hover:underline"
                           >
-                            Edit Protocol
+                            Edit Address
                           </button>
                           <button 
                             onClick={async () => {
@@ -675,7 +675,7 @@ const Profile: React.FC<ProfileProps> = ({
                               if (userId) {
                                 await databaseService.saveUserLogistics(userId, newProtocols);
                                 onUpdateProtocols(newProtocols);
-                                toast.success("Protocol Deleted");
+                                toast.success("Address Deleted");
                               }
                             }}
                             className="text-[8px] font-black text-red-500 uppercase tracking-widest hover:underline"

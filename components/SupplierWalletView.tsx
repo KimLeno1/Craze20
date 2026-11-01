@@ -71,15 +71,15 @@ const SupplierWalletView: React.FC<SupplierWalletViewProps> = ({ supplierId }) =
     <div className="space-y-12 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row justify-between items-start gap-8">
         <div className="space-y-2">
-          <h2 className="text-4xl font-serif italic text-white">Node_Treasury</h2>
-          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Managing manufacturing yields and payouts</p>
+          <h2 className="text-4xl font-serif italic text-white">Supplier Wallet</h2>
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Track earnings, balance and withdrawals</p>
         </div>
         
         <div className="flex flex-wrap gap-4">
            <div className="bg-zinc-950 p-8 rounded-[2.5rem] border border-[#f59e0b]/20 flex items-center gap-8 shadow-2xl shadow-[#f59e0b]/5">
               <div className="w-16 h-16 bg-[#f59e0b]/10 rounded-3xl flex items-center justify-center text-3xl">🏦</div>
               <div>
-                 <div className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Available Yield</div>
+                 <div className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Available Balance</div>
                  <div className="text-4xl font-mono font-black text-white">GH₵{wallet.balance.toLocaleString()}</div>
               </div>
            </div>
@@ -119,7 +119,7 @@ const SupplierWalletView: React.FC<SupplierWalletViewProps> = ({ supplierId }) =
            <div className="bg-zinc-950 p-8 rounded-[2.5rem] border border-white/5 space-y-6">
               <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <TrendingUp size={14} className="text-[#f59e0b]" />
-                Yield Metrics
+                Financial Summary
               </h3>
               <div className="space-y-4">
                  <div className="flex justify-between items-center">
@@ -285,11 +285,11 @@ const SupplierWalletView: React.FC<SupplierWalletViewProps> = ({ supplierId }) =
 
       {/* Payout Modal */}
       {isPayoutModalOpen && (
-        <div className="fixed inset-0 z-[400] bg-black/95 backdrop-blur-xl overflow-y-auto flex items-start sm:items-center justify-center p-4 sm:p-6 scroll-smooth scrollbar-hide">
-           <div className="bg-[#050505] border border-white/10 w-full max-w-lg rounded-[3rem] p-8 sm:p-12 animate-in zoom-in-95 duration-500 flex flex-col my-auto max-h-[85vh] sm:max-h-[80vh] md:max-h-[85vh] overflow-hidden">
+        <div className="fixed inset-0 z-[400] bg-black/80 overflow-y-auto flex items-start sm:items-center justify-center p-4 sm:p-6 scroll-smooth scrollbar-hide">
+           <div className="bg-[#050505] border border-white/10 w-full max-w-lg rounded-[3rem] p-8 sm:p-12 animate-in zoom-in-95 duration-500 flex flex-col my-auto max-h-[85vh] sm:max-h-[80vh] md:max-h-[85vh] overflow-hidden shadow-2xl">
               <div className="space-y-2 shrink-0 mb-6 sm:mb-8">
-                 <h3 className="text-2xl sm:text-3xl font-serif italic text-white">Payout_Auth</h3>
-                 <p className="text-[9px] sm:text-[10px] font-black text-zinc-500 uppercase tracking-widest">Initializing yield liquidation protocol</p>
+                 <h3 className="text-2xl sm:text-3xl font-serif italic text-white">Request Payout</h3>
+                 <p className="text-[9px] sm:text-[10px] font-black text-zinc-500 uppercase tracking-widest">Submit a payout request to your account</p>
               </div>
               
               <form 
@@ -298,7 +298,7 @@ const SupplierWalletView: React.FC<SupplierWalletViewProps> = ({ supplierId }) =
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Liquidation Amount (GH₵)</label>
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">Payout Amount (GH₵)</label>
                     <input 
                       type="number" 
                       required
@@ -309,19 +309,19 @@ const SupplierWalletView: React.FC<SupplierWalletViewProps> = ({ supplierId }) =
                       className="w-full bg-zinc-900 border border-white/10 p-5 rounded-2xl text-xs font-black text-white focus:border-[#f59e0b] outline-none"
                     />
                     <div className="flex justify-between px-1">
-                       <span className="text-[8px] font-black text-zinc-700 uppercase">Available: GH₵{wallet.balance.toLocaleString()}</span>
+                       <span className="text-[8px] font-black text-zinc-500 uppercase">Available: GH₵{wallet.balance.toLocaleString()}</span>
                        <button 
                          type="button" 
                          onClick={() => setPayoutAmount(wallet.balance)}
                          className="text-[8px] font-black text-[#f59e0b] uppercase hover:underline"
                        >
-                         Max Yield
+                         Max Amount
                        </button>
                     </div>
                  </div>
                  
                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Payout Reference / Description</label>
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">Payout Reference / Description</label>
                     <input 
                       type="text" 
                       value={payoutDescription}
@@ -335,15 +335,15 @@ const SupplierWalletView: React.FC<SupplierWalletViewProps> = ({ supplierId }) =
                     <button 
                       type="button" 
                       onClick={() => setIsPayoutModalOpen(false)}
-                      className="flex-1 py-4 bg-zinc-950 text-zinc-600 rounded-2xl font-black uppercase tracking-widest text-[9px] hover:text-white transition-all"
+                      className="flex-1 py-4 bg-zinc-900 text-zinc-400 rounded-2xl font-black uppercase tracking-widest text-[9px] hover:text-white transition-all"
                     >
-                      Abort
+                      Cancel
                     </button>
                     <button 
                       type="submit"
                       className="flex-[2] py-4 bg-[#f59e0b] text-black rounded-2xl font-black uppercase tracking-widest text-[9px] hover:bg-white hover:text-[#f59e0b] transition-all shadow-2xl"
                     >
-                      Initialize Liquidation
+                      Confirm Payout
                     </button>
                  </div>
               </form>

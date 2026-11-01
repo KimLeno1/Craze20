@@ -6,6 +6,8 @@ import { databaseService } from '../services/databaseService';
 import { toast } from 'sonner';
 import { PurchaseCelebration } from './PurchaseCelebration';
 import { trackPlausibleEvent } from '../lib/analytics';
+import { Loader2, Lock, ShieldCheck } from 'lucide-react';
+import AnimatedLoader from './AnimatedLoader';
 
 interface CheckoutViewProps {
   items: CartItem[];
@@ -51,10 +53,14 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
   const [step, setStep] = useState<'SELECTION' | 'GEO_ZONING' | 'LOGISTICS' | 'PAYMENT' | 'PROCESSING' | 'SUCCESS'>(
     protocols.length > 0 ? 'SELECTION' : 'GEO_ZONING'
   );
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const [formData, setFormData] = useState(() => {
     const saved = localStorage.getItem('cc-checkout-formData');
     try {
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
     } catch(e) {}
     return {
       name: '',
@@ -76,6 +82,7 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
   const [referralDiscount, setReferralDiscount] = useState(0);
   const [isValidatingCode, setIsValidatingCode] = useState(false);
   const [codeMessage, setCodeMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const userId = localStorage.getItem('cc-user-id') || 'guest';
 
   const handleApplyCode = async () => {
     const code = appliedCodeInput.trim().toUpperCase();
@@ -94,15 +101,27 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
           setReferralDiscount(refRes.discountAmount || 20);
           setCodeMessage({ text: `✓ KFAM Referral discount applied! Saved GH₵${refRes.discountAmount || 20}`, type: 'success' });
           // Track referral link for this user
-          const userId = localStorage.getItem('cc-user-id');
-          if (userId) {
-            databaseService.trackReferral(code, userId);
+          const uId = userId || localStorage.getItem('cc-user-id');
+          if (uId) {
+            databaseService.trackReferral(code, uId);
           }
         }
         setIsValidatingCode(false);
         return;
+      } else if (refRes && !refRes.valid && refRes.message) {
+        setCodeMessage({ text: refRes.message, type: 'error' });
+        setReferralDiscount(0);
+        setIsValidatingCode(false);
+        return;
       }
-    } catch (e) {}
+    } catch (e: any) {
+      if (e?.message && (e.message.includes('refer') || e.message.includes('code'))) {
+        setCodeMessage({ text: e.message, type: 'error' });
+        setReferralDiscount(0);
+        setIsValidatingCode(false);
+        return;
+      }
+    }
 
     // 2. Try standard promo code
     try {
@@ -161,7 +180,13 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
   };
 
   const handleFinalize = async () => {
-    handlePaystackPayment();
+    if (isFinalizing) return;
+    setIsFinalizing(true);
+    try {
+      await handlePaystackPayment();
+    } finally {
+      setIsFinalizing(false);
+    }
   };
 
   const handlePaystackPayment = async () => {
@@ -353,12 +378,9 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
   if (step === 'PROCESSING') {
     return (
       <div className="fixed inset-0 z-[250] bg-white flex flex-col items-center justify-center p-6 sm:p-10">
-        <div className="relative">
-          <div className="w-16 h-16 sm:w-24 sm:h-24 border-4 border-zinc-100 border-t-zinc-950 rounded-full animate-spin"></div>
-          <div className="absolute inset-0 flex items-center justify-center text-xl sm:text-2xl">⚡</div>
-        </div>
+        <AnimatedLoader size="xl" variant="luxury-ring" text="Securing Order" />
         <h2 className="text-2xl sm:text-3xl font-serif italic text-zinc-950 mt-8 sm:mt-12 tracking-tighter uppercase">Processing Order...</h2>
-        <p className="text-[7px] sm:text-[9px] font-black text-zinc-400 uppercase tracking-[0.5em] mt-4">Preparing your items</p>
+        <p className="text-[8px] sm:text-[10px] font-black text-zinc-400 uppercase tracking-[0.5em] mt-3">Connecting to encrypted gateway & preparing pieces</p>
       </div>
     );
   }
@@ -709,8 +731,26 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
                </div>
 
                <div className="flex flex-col gap-4 sm:gap-6">
-                 <button onClick={handleFinalize} className="w-full py-6 sm:py-10 bg-blue-600 text-white rounded-[2rem] sm:rounded-[3rem] font-black uppercase text-xs sm:text-sm tracking-[0.5em] hover:bg-blue-700 transition-all shadow-2xl active:scale-95">
-                   Confirm Order
+                 <button 
+                   onClick={handleFinalize} 
+                   disabled={isFinalizing}
+                   className={`w-full py-6 sm:py-10 text-white rounded-[2rem] sm:rounded-[3rem] font-black uppercase text-xs sm:text-sm tracking-[0.4em] transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3 cursor-pointer ${
+                     isFinalizing 
+                       ? 'bg-[#09285E] border-2 border-[#C5A880] cursor-wait text-amber-300' 
+                       : 'bg-blue-600 hover:bg-blue-700'
+                   }`}
+                 >
+                   {isFinalizing ? (
+                     <>
+                       <Loader2 className="w-5 h-5 animate-spin text-amber-300" />
+                       <span>Connecting to Paystack Gateway...</span>
+                     </>
+                   ) : (
+                     <>
+                       <Lock className="w-4 h-4" />
+                       <span>Confirm Order • GH₵{finalTotal}</span>
+                     </>
+                   )}
                  </button>
                  <button onClick={() => setStep('LOGISTICS')} className="text-[8px] sm:text-[10px] font-black text-zinc-300 hover:text-zinc-950 uppercase tracking-[0.5em] transition-colors mx-auto underline decoration-zinc-100 underline-offset-8">Review Details</button>
                </div>

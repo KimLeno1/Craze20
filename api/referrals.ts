@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { db } from '../server.js';
 import { authenticate, authorize, optionalAuth, AuthRequest } from '../middleware/auth.js';
+import {
+  checkCircularReferral,
+  getUserLedgerBlocks,
+  verifyLedgerChain,
+  recordReferralRewardBlock
+} from './referralBlockchain.js';
 
 const router = Router();
 
@@ -12,20 +18,35 @@ export function generateReferralCode(nameOrHandle: string): string {
 }
 
 // GET /api/referrals/validate/:code - Validate if referral code exists
-router.get('/validate/:code', async (req, res: any) => {
-  const rawCode = (req.params.code || '').trim().toUpperCase();
+router.get('/validate/:code', optionalAuth, async (req: AuthRequest, res: any) => {
+  const rawCode = String(req.params.code || '').trim().toUpperCase();
+  const currentUserId = req.user?.id || (req.query.userId as string);
+
   if (!rawCode) {
     return res.status(400).json({ valid: false, message: 'Referral code is required' });
   }
 
   try {
+    // Find referrer by referralCode, or handle match
+    const cleanHandle = rawCode.startsWith('KRAZE_') ? rawCode.substring(6) : rawCode;
     const referrer = await db.get(
-      'SELECT id, handle, email FROM users WHERE UPPER(referralCode) = ?',
-      [rawCode]
+      'SELECT id, handle, email, referralCode FROM users WHERE UPPER(referralCode) = ? OR UPPER(handle) = ?',
+      [rawCode, cleanHandle]
     );
 
     if (!referrer) {
       return res.status(404).json({ valid: false, message: 'Invalid referral code' });
+    }
+
+    // Check circular referral constraint: "you cant use the referal code of some one you referred"
+    if (currentUserId) {
+      const circCheck = await checkCircularReferral(db, currentUserId, referrer.id);
+      if (!circCheck.isAllowed) {
+        return res.status(400).json({
+          valid: false,
+          message: circCheck.reason || 'You cannot use the referral code of someone you referred.'
+        });
+      }
     }
 
     const referrerName = referrer.handle || referrer.email?.split('@')[0] || 'A Kraze Member';
@@ -37,7 +58,7 @@ router.get('/validate/:code', async (req, res: any) => {
       referrerName,
       discountAmount: 20,
       minOrderAmount: 100,
-      message: `Valid code from @${referrerName}! Get GH₵20 off orders over GH₵100.`
+      message: `Valid code from @${referrerName}! Get GH₵20 off orders over GH₵100 and earn them 10% credit for life.`
     });
   } catch (error) {
     console.error('Error validating referral code:', error);
@@ -108,21 +129,61 @@ router.get('/my-stats', authenticate, async (req: AuthRequest, res: any) => {
       };
     });
 
+    const ledger = await getUserLedgerBlocks(db, userId);
+    const ledgerEarned = ledger
+      .filter((b: any) => b.referrerId === userId)
+      .reduce((s: number, b: any) => s + (Number(b.rewardAmount) || 0), 0);
+    if (ledgerEarned > 0) {
+      totalEarned = Math.max(totalEarned, ledgerEarned);
+    }
+
     return res.json({
       status: 'success',
       referralCode: user.referralCode,
       storeCredit,
+      commissionRate: 0.10,
+      lifetimeCommissionRate: '10%',
+      roundingRule: 'nearest whole number',
       stats: {
         totalInvited,
         completedCount,
         pendingCount,
-        totalEarned
+        totalEarned,
+        commissionRate: 0.10
       },
-      referrals: formattedReferrals
+      referrals: formattedReferrals,
+      ledger
     });
   } catch (error) {
     console.error('Error fetching referral stats:', error);
     return res.status(500).json({ status: 'error', message: 'Failed to fetch referral stats' });
+  }
+});
+
+// GET /api/referrals/ledger - Fetch user's blockchain ledger blocks
+router.get('/ledger', authenticate, async (req: AuthRequest, res: any) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ status: 'error', message: 'Authentication required' });
+  }
+
+  try {
+    const blocks = await getUserLedgerBlocks(db, userId);
+    return res.json({ status: 'success', blocks });
+  } catch (error) {
+    console.error('Error fetching referral ledger:', error);
+    return res.status(500).json({ status: 'error', message: 'Failed to fetch referral ledger' });
+  }
+});
+
+// GET /api/referrals/verify-chain - Cryptographic verification of all blockchain blocks
+router.get('/verify-chain', async (req, res: any) => {
+  try {
+    const verification = await verifyLedgerChain(db);
+    return res.json({ status: 'success', verification });
+  } catch (error) {
+    console.error('Error verifying referral chain:', error);
+    return res.status(500).json({ status: 'error', message: 'Failed to verify chain' });
   }
 });
 
@@ -137,17 +198,24 @@ router.post('/track', optionalAuth, async (req: AuthRequest, res: any) => {
   }
 
   try {
+    const cleanHandle = code.startsWith('KRAZE_') ? code.substring(6) : code;
     const referrer = await db.get(
-      'SELECT id, handle, email FROM users WHERE UPPER(referralCode) = ?',
-      [code]
+      'SELECT id, handle, email FROM users WHERE UPPER(referralCode) = ? OR UPPER(handle) = ?',
+      [code, cleanHandle]
     );
 
     if (!referrer) {
       return res.status(404).json({ status: 'error', message: 'Referral code not found' });
     }
 
-    if (currentUserId && referrer.id === currentUserId) {
-      return res.status(400).json({ status: 'error', message: 'Cannot refer yourself' });
+    if (currentUserId) {
+      const circCheck = await checkCircularReferral(db, currentUserId, referrer.id);
+      if (!circCheck.isAllowed) {
+        return res.status(400).json({
+          status: 'error',
+          message: circCheck.reason || 'You cannot use the referral code of someone you referred.'
+        });
+      }
     }
 
     let refereeId = currentUserId;
@@ -169,7 +237,7 @@ router.post('/track', optionalAuth, async (req: AuthRequest, res: any) => {
 
         await db.run(
           `INSERT INTO referrals (id, referrerId, refereeId, referredId, code, status, rewardAmount, createdAt)
-           VALUES (?, ?, ?, ?, ?, 'pending', 20, ?)`,
+           VALUES (?, ?, ?, ?, ?, 'pending', 0, ?)`,
           [refId, referrer.id, refereeId, refereeId, code, nowIso]
         );
 
@@ -190,9 +258,9 @@ router.post('/track', optionalAuth, async (req: AuthRequest, res: any) => {
   }
 });
 
-// POST /api/referrals/reward - On referee first order delivery, credit both parties
+// POST /api/referrals/reward - Rewarding purchase for referred friend
 router.post('/reward', authenticate, async (req: AuthRequest, res: any) => {
-  const { refereeUserId, refereeOrderId } = req.body;
+  const { refereeUserId, refereeOrderId, productAmount } = req.body;
 
   try {
     const refereeId = refereeUserId || req.user?.id;
@@ -200,51 +268,80 @@ router.post('/reward', authenticate, async (req: AuthRequest, res: any) => {
       return res.status(400).json({ status: 'error', message: 'Referee User ID required' });
     }
 
-    // Find pending referral
+    // Find referral link
     const referral = await db.get(
-      `SELECT * FROM referrals WHERE (refereeId = ? OR referredId = ?) AND LOWER(status) = 'pending'`,
+      `SELECT * FROM referrals WHERE (refereeId = ? OR referredId = ?)`,
       [refereeId, refereeId]
     );
 
     if (!referral) {
-      return res.json({ status: 'info', message: 'No pending referral found or already rewarded' });
+      return res.json({ status: 'info', message: 'No referral connection found' });
+    }
+
+    // Check if order was already ledgered
+    if (refereeOrderId) {
+      const existingBlock = await db.get('SELECT id FROM referral_ledger WHERE orderId = ?', [refereeOrderId]);
+      if (existingBlock) {
+        return res.json({ status: 'info', message: 'Order reward already mined on blockchain ledger' });
+      }
     }
 
     const nowIso = new Date().toISOString();
-    const rewardAmount = Number(referral.rewardAmount) || 20;
+    // 10% of product amount rounded to nearest whole number
+    const prodAmt = Number(productAmount) || 100;
+    const rewardAmount = Math.round(prodAmt * 0.10);
 
-    // 1. Update referral status to completed
+    if (rewardAmount <= 0) {
+      return res.json({ status: 'info', message: 'Reward amount calculates to 0' });
+    }
+
+    // 1. Record on blockchain ledger
+    const block = await recordReferralRewardBlock(db, {
+      referrerId: referral.referrerId,
+      referredUserId: refereeId,
+      orderId: refereeOrderId || `MANUAL_${Date.now()}`,
+      productAmount: prodAmt,
+      rewardAmount,
+      metadata: { source: 'api_reward_endpoint' }
+    });
+
+    // 2. Update referral status
     await db.run(
-      `UPDATE referrals SET status = 'completed', refereeOrderId = ?, completedAt = ? WHERE id = ?`,
-      [refereeOrderId || null, nowIso, referral.id]
+      `UPDATE referrals SET status = 'completed', rewardAmount = rewardAmount + ?, refereeOrderId = ?, completedAt = ? WHERE id = ?`,
+      [rewardAmount, refereeOrderId || null, nowIso, referral.id]
     );
 
-    // 2. Credit referrer GH₵20 store credit
+    // 3. Credit referrer store credit
     await db.run(
       'UPDATE users SET credit = credit + ? WHERE id = ?',
       [rewardAmount, referral.referrerId]
     );
 
-    // Also sync to user_stats storeCredit
     await db.run(
       'UPDATE user_stats SET storeCredit = storeCredit + ? WHERE userId = ?',
       [rewardAmount, referral.referrerId]
     );
 
-    // Create a notification for referrer
+    // Create notification for referrer
     try {
       const notifId = `notif_${Date.now()}`;
       await db.run(
         `INSERT INTO notifications (id, title, message, type, timestamp, read, recipientId)
-         VALUES (?, 'KFAM Referral Reward! 🎉', 'Your friend completed their first order! GH₵20 store credit has been added to your balance.', 'REWARD', ?, 0, ?)`,
-        [notifId, nowIso, referral.referrerId]
+         VALUES (?, 'KFAM Referral Reward! 🎉', ?, 'REWARD', ?, 0, ?)`,
+        [
+          notifId,
+          `Your friend made a purchase of GH₵${prodAmt}! You received GH₵${rewardAmount} store credit (10% lifetime commission). Block #${block.blockIndex} mined.`,
+          nowIso,
+          referral.referrerId
+        ]
       );
     } catch (e) {}
 
     return res.json({
       status: 'success',
-      message: 'Referral reward credited successfully',
-      rewardAmount
+      message: 'Referral reward credited and block mined successfully',
+      rewardAmount,
+      block
     });
   } catch (error) {
     console.error('Error rewarding referral:', error);

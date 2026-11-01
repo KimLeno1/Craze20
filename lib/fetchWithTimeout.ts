@@ -16,9 +16,9 @@ export async function fetchWithTimeout(
   options: FetchWithTimeoutOptions = {}
 ): Promise<Response> {
   const {
-    timeoutMs = 8000,
+    timeoutMs = 6000,
     maxRetries = 2,
-    retryDelays = [2000, 4000],
+    retryDelays = [300, 800],
     onRetry,
     ...fetchOptions
   } = options;

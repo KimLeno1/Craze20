@@ -25,93 +25,114 @@ body {
   width: 100%;
 }
 
-/* Glassmorphism Classes */
+/* Premium Editorial Design System (Crisp, Clear & Solid under White Canvas) */
 
-/* Royal Sapphire Glass */
-.glass-sapphire-panel {
-  background: rgba(11, 19, 43, 0.75) !important;
-  backdrop-filter: blur(24px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
-  border: 1px solid rgba(15, 82, 186, 0.35) !important;
-  box-shadow: 0 16px 40px -8px rgba(6, 11, 24, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15) !important;
+/* 1. Crisp Solid White Cards (Cards, Panels, Containers) */
+.glass,
+.glass-card,
+.glass-card-light,
+.glass-light {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 6px 16px -2px rgba(15, 23, 42, 0.04) !important;
 }
 
-/* Light Frosted Glass for Cards & Content */
-.glass-card-light {
-  background: rgba(255, 255, 255, 0.72) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(15, 82, 186, 0.12) !important;
-  box-shadow: 0 8px 30px -4px rgba(15, 82, 186, 0.06), inset 0 1px 1px 0 rgba(255, 255, 255, 0.8) !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card-light:hover {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-color: rgba(197, 168, 128, 0.5) !important;
-  box-shadow: 0 14px 38px -4px rgba(197, 168, 128, 0.16), 0 4px 12px -2px rgba(15, 82, 186, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 1) !important;
+.glass-card-light:hover,
+.glass-card:hover,
+.glass-light:hover,
+.glass:hover {
+  background: #FFFFFF !important;
+  border-color: rgba(15, 82, 186, 0.28) !important;
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.09), 0 4px 10px -2px rgba(15, 82, 186, 0.05) !important;
   transform: translateY(-2px);
 }
 
-/* Prestige Gold Glass Accent */
-.glass-gold-pill {
-  background: rgba(197, 168, 128, 0.12) !important;
-  backdrop-filter: blur(16px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
-  border: 1px solid rgba(197, 168, 128, 0.35) !important;
-  color: #967447 !important;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(197, 168, 128, 0.12) !important;
-}
-
-/* Dark Glassmorphism Dock (Bottom & Top Navbars) */
-.glass-nav-dock {
-  background: rgba(6, 11, 24, 0.82) !important;
-  backdrop-filter: blur(28px) saturate(210%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(210%) !important;
-  border: 1px solid rgba(15, 82, 186, 0.28) !important;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12) !important;
-}
-
-/* Header Floating Glass Pill */
+/* 2. Crisp Floating Header Bar */
 .glass-header-bar {
-  background: rgba(255, 255, 255, 0.82) !important;
-  backdrop-filter: blur(24px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
-  border: 1px solid rgba(15, 82, 186, 0.18) !important;
-  box-shadow: 0 10px 30px -5px rgba(15, 82, 186, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.9) !important;
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06) !important;
 }
 
-/* Liquid Glass Sapphire Blue */
-.glass-sapphire-70 {
-  background: rgba(11, 19, 43, 0.85) !important;
-  backdrop-filter: blur(28px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-  border: 1px solid rgba(15, 82, 186, 0.4) !important;
-  box-shadow: 0 16px 40px 0 rgba(6, 11, 24, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.18) !important;
+/* 3. Crisp Bottom Nav Dock */
+.glass-nav-dock {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-top: 1px solid #E2E8F0 !important;
+  box-shadow: 0 -4px 20px -2px rgba(15, 23, 42, 0.06) !important;
 }
 
-/* Liquid Glass Azure Blue (subtle transparent) */
-.glass-azure-85 {
-  background: rgba(15, 82, 186, 0.06) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(15, 82, 186, 0.18) !important;
-  box-shadow: 0 8px 32px 0 rgba(15, 82, 186, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
+/* 4. Luxury Modal & Banner */
+.glass-cookie,
+.glass-cookie-style,
+.glass-modal {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18) !important;
 }
 
-.glass-sapphire-22-5 {
-  background: rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(15, 82, 186, 0.2) !important;
-  box-shadow: 0 8px 28px 0 rgba(15, 82, 186, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
-  transition: all 0.3s ease;
+/* 5. Soft Ice Blue Surface Accent */
+.glass-azure-85,
+.glass-sapphire-22-5,
+.glass-blue {
+  background: #F0F6FE !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #DBEAFE !important;
+  box-shadow: 0 2px 8px rgba(15, 82, 186, 0.04) !important;
 }
 
-.glass-sapphire-22-5:hover {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(197, 168, 128, 0.5) !important;
-  box-shadow: 0 12px 36px 0 rgba(197, 168, 128, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+.glass-azure-85:hover,
+.glass-sapphire-22-5:hover,
+.glass-blue:hover {
+  background: #E8F2FF !important;
+  border-color: #BFDBFE !important;
+  box-shadow: 0 4px 14px rgba(15, 82, 186, 0.08) !important;
+}
+
+/* 6. Prestige Gold Solid Accent */
+.glass-gold-pill {
+  background: #FFFDF9 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #EED8B8 !important;
+  color: #8D6638 !important;
+  box-shadow: 0 1px 4px rgba(197, 168, 128, 0.12) !important;
+}
+
+/* 7. Deep Midnight Sapphire High-Contrast Focal Panel */
+.glass-sapphire-panel,
+.glass-sapphire-70,
+.glass-sapphire-main {
+  background: #0B132B !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #1E293B !important;
+  box-shadow: 0 12px 32px -4px rgba(6, 11, 24, 0.35) !important;
+}
+
+/* 8. Refined Neutral Surface */
+.glass-grey {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+
+.glass-green {
+  background: #F0FDF4 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #BBF7D0 !important;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.05) !important;
 }
 
 @theme {
@@ -160,35 +181,6 @@ body {
   text-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-}
-
-.glass-green {
-  background: rgba(236, 253, 245, 0.8);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(5, 150, 105, 0.1);
-}
-
-.glass-blue {
-  background: rgba(239, 246, 255, 0.8);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(37, 99, 235, 0.1);
-}
-
-.glass-grey {
-  background: rgba(15, 23, 42, 0.04);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-}
-
 body {
   background-color: #F8FAFC !important;
 }
@@ -215,14 +207,6 @@ body {
   box-shadow: 0 0 10px 2px rgba(197, 168, 128, 0.8), 0 0 4px #C5A880;
   position: absolute;
   top: -8px;
-}
-
-.glass-sapphire-main {
-  background: rgba(6, 11, 24, 0.88) !important;
-  backdrop-filter: blur(24px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
-  border-bottom: 1px solid rgba(15, 82, 186, 0.3) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
 }
 
 .glass-sapphire-main::before {
@@ -316,22 +300,153 @@ body {
   animation: scan 2.5s infinite linear;
 }
 
-div#root:nth-of-type(1) > div:nth-of-type(1) > nav:nth-of-type(2) {
-  mask-image: radial-gradient(circle at 50% 5px, transparent 38px, black 39px) !important;
-  -webkit-mask-image: radial-gradient(circle at 50% 5px, transparent 38px, black 39px) !important;
+/* Premium UI fine-tuning */
+
+/* Universal Animated Button Press Feedback */
+button:not(:disabled):not(.no-press),
+[role="button"]:not([aria-disabled="true"]):not(.no-press) {
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.15s ease,
+              background-color 0.2s ease,
+              border-color 0.2s ease;
+  will-change: transform;
 }
 
-div#root:nth-of-type(1) > div:nth-of-type(1) > nav:nth-of-type(2) > div:nth-of-type(1) > button:nth-of-type(1) > div:nth-of-type(1) {
-  background: linear-gradient(135deg, rgba(0, 60, 180, 0.9), rgba(0, 20, 100, 0.95)) !important;
+button:not(:disabled):not(.no-press):active,
+[role="button"]:not([aria-disabled="true"]):not(.no-press):active {
+  transform: scale(0.96) translateY(1px);
 }
 
-div#root:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(1) > p:nth-of-type(1),
-div#root:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(1) > p:nth-of-type(1),
-div#root:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > p:nth-of-type(1),
-div#root:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > p:nth-of-type(1),
-div#root:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > p:nth-of-type(1),
-div#root:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > p:nth-of-type(1),
-div#root:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1),
-div#root:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(7) > div:nth-of-type(1) > span:nth-of-type(2) {
-  display: none !important;
+/* Animated loading state classes for any button or container */
+button[data-loading="true"],
+button[aria-busy="true"],
+button.is-loading,
+.btn-loading {
+  position: relative !important;
+  pointer-events: none !important;
+  cursor: wait !important;
+  opacity: 0.85 !important;
 }
+
+button[data-loading="true"]::after,
+button.is-loading::after,
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.18) 50%, transparent 100%);
+  transform: skewX(-20deg) translateX(-100%);
+  animation: button-shimmer 1.4s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes button-shimmer {
+  0% { transform: skewX(-20deg) translateX(-150%); }
+  100% { transform: skewX(-20deg) translateX(250%); }
+}
+
+@keyframes luxury-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.3; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+@keyframes global-load {
+  0% { transform: translateX(-100%) scaleX(0.2); }
+  50% { transform: translateX(0%) scaleX(0.8); }
+  100% { transform: translateX(100%) scaleX(0.2); }
+}
+
+.animate-luxury-spin {
+  animation: luxury-spin 0.85s linear infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Admin Panel High-Contrast Dark Theme System */
+.admin-panel-theme {
+  background-color: #09090B !important;
+  color: #FAFAFA !important;
+}
+
+.admin-panel-theme .glass-grey,
+.admin-panel-theme .glass-card,
+.admin-panel-theme .glass-light,
+.admin-panel-theme .glass-card-light,
+.admin-panel-theme .glass,
+.admin-panel-theme .glass-sapphire-panel {
+  background: #18181B !important;
+  border: 1px solid #27272A !important;
+  color: #FAFAFA !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.admin-panel-theme .glass-light {
+  background: #27272A !important;
+  border-color: #3F3F46 !important;
+  color: #FAFAFA !important;
+}
+
+.admin-panel-theme h1,
+.admin-panel-theme h2,
+.admin-panel-theme h3,
+.admin-panel-theme h4,
+.admin-panel-theme h5,
+.admin-panel-theme h6 {
+  color: #FFFFFF !important;
+}
+
+.admin-panel-theme th {
+  color: #E4E4E7 !important;
+}
+
+.admin-panel-theme td {
+  color: #D4D4D8 !important;
+}
+
+.admin-panel-theme input,
+.admin-panel-theme select,
+.admin-panel-theme textarea {
+  background-color: #18181B !important;
+  border-color: #3F3F46 !important;
+  color: #FFFFFF !important;
+}
+
+.admin-panel-theme input::placeholder {
+  color: #71717A !important;
+}
+
+.admin-panel-theme .text-zinc-600,
+.admin-panel-theme .text-zinc-500 {
+  color: #A1A1AA !important;
+}
+
+.admin-panel-theme .text-zinc-400 {
+  color: #CBD5E1 !important;
+}
+
+.admin-panel-theme .text-zinc-950,
+.admin-panel-theme .text-zinc-900,
+.admin-panel-theme .text-zinc-800,
+.admin-panel-theme .text-black {
+  color: #FAFAFA !important;
+}
+
+.admin-panel-theme .bg-zinc-50,
+.admin-panel-theme .bg-zinc-100 {
+  background-color: #18181B !important;
+}
+
+.admin-panel-theme .border-zinc-200,
+.admin-panel-theme .border-zinc-100 {
+  border-color: #27272A !important;
+}
+

@@ -73,7 +73,7 @@ const SocialGallery: React.FC<SocialGalleryProps> = ({ stats, onUpdateStats, onG
 
   const handleAddComment = async () => {
     if (!selectedPost || !newComment.trim() || !currentUserId) return;
-    const handle = localStorage.getItem('cc-user-handle') || 'Archiver';
+    const handle = localStorage.getItem('cc-user-handle') || 'Member';
     const success = await databaseService.addPostComment(selectedPost.id, currentUserId, handle, newComment);
     if (success) {
       setNewComment('');
@@ -105,11 +105,11 @@ const SocialGallery: React.FC<SocialGalleryProps> = ({ stats, onUpdateStats, onG
     const hasPostedThisWeek = posts.some(p => p.userId === currentUserId && p.weekId === weekId);
 
     if (hasPostedThisWeek) {
-      alert('You have already posted this week. Matrix protocol allows only one transmission per cycle.');
+      alert('You have already posted this week. Only one post is allowed per week.');
       return;
     }
 
-    const customHandle = localStorage.getItem('cc-user-handle') || 'Archiver';
+    const customHandle = localStorage.getItem('cc-user-handle') || 'Member';
     const newPost: UserPost = {
       id: `post_${Date.now()}`,
       userId: currentUserId,
@@ -207,7 +207,7 @@ const SocialGallery: React.FC<SocialGalleryProps> = ({ stats, onUpdateStats, onG
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-20 py-8 md:py-16 pb-40" id="kfam-community-panel">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-4 sm:py-6 pb-40" id="kfam-community-panel">
       {/* HUD Welcome Section */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 md:mb-16">
         <div className="space-y-4">
@@ -258,7 +258,7 @@ const SocialGallery: React.FC<SocialGalleryProps> = ({ stats, onUpdateStats, onG
             <div className="space-y-1">
               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Active Alias</span>
               <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                @{localStorage.getItem('cc-user-handle') || 'Archiver'}
+                @{localStorage.getItem('cc-user-handle') || 'Member'}
               </h3>
             </div>
 
@@ -374,9 +374,9 @@ const SocialGallery: React.FC<SocialGalleryProps> = ({ stats, onUpdateStats, onG
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-white/10">
         <div className="flex flex-wrap gap-2">
           {([
-            { id: 'ALL', label: 'All Transmissions', icon: Compass },
-            { id: 'HOT', label: 'Hall of Fame Fits', icon: Award },
-            { id: 'MINE', label: 'My Fit Archives', icon: UserCheck }
+            { id: 'ALL', label: 'All Posts', icon: Compass },
+            { id: 'HOT', label: 'Top Outfits', icon: Award },
+            { id: 'MINE', label: 'My Posts', icon: UserCheck }
           ] as const).map(tab => {
             const Icon = tab.icon;
             return (
@@ -833,9 +833,9 @@ const SocialGallery: React.FC<SocialGalleryProps> = ({ stats, onUpdateStats, onG
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-3">
                     <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-[10px] font-black text-white uppercase tracking-widest mb-1">Weekly Archive reset</h4>
+                      <h4 className="text-[10px] font-black text-white uppercase tracking-widest mb-1">Weekly Leaderboard Reset</h4>
                       <p className="text-[9px] text-zinc-400 leading-normal uppercase">
-                        Fit transmissions are wiped on the Friday cycle. Top 10 validated looks enter the permanent Elite archive.
+                        Posts reset every Friday. Top 10 looks enter the permanent Hall of Fame.
                       </p>
                     </div>
                   </div>
@@ -845,7 +845,7 @@ const SocialGallery: React.FC<SocialGalleryProps> = ({ stats, onUpdateStats, onG
                     disabled={!newPostImage}
                     className="w-full bg-white hover:bg-[#00D1FF] hover:text-black text-black py-5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-20 active:scale-95"
                   >
-                    Broadcast Fit
+                    Post Outfit
                   </button>
                 </div>
               </div>

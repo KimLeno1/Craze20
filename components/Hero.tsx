@@ -80,7 +80,7 @@ const Hero: React.FC<HeroProps> = ({ onShopNow }) => {
 
         <button
           onClick={handleShuffle}
-          className="px-3 py-1.5 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white/90 hover:text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-md active:scale-95"
+          className="px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white/90 hover:text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-md active:scale-95"
           title="Pick 4 new random quotes"
         >
           <Shuffle className="w-3 h-3 text-[#00D1FF]" />
@@ -109,7 +109,7 @@ const Hero: React.FC<HeroProps> = ({ onShopNow }) => {
       {/* Navigation Arrows */}
       <button 
         onClick={() => setCurrentIndex(prev => prev === 0 ? slides.length - 1 : prev - 1)}
-        className="absolute left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-300 z-20 opacity-0 group-hover:opacity-100 active:scale-95 shadow-xl"
+        className="absolute left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 border border-white/20 text-white hover:bg-black/90 transition-all duration-300 z-20 opacity-0 group-hover:opacity-100 active:scale-95 shadow-xl"
         title="Previous"
       >
         <ChevronLeft className="w-6 h-6" />
@@ -117,7 +117,7 @@ const Hero: React.FC<HeroProps> = ({ onShopNow }) => {
 
       <button 
         onClick={() => setCurrentIndex(prev => (prev + 1) % slides.length)}
-        className="absolute right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-300 z-20 opacity-0 group-hover:opacity-100 active:scale-95 shadow-xl"
+        className="absolute right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 border border-white/20 text-white hover:bg-black/90 transition-all duration-300 z-20 opacity-0 group-hover:opacity-100 active:scale-95 shadow-xl"
         title="Next"
       >
         <ChevronRight className="w-6 h-6" />

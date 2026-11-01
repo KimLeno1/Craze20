@@ -35,7 +35,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
         rating,
         comment
       });
-      toast.success("Review logged to the archive.");
+      toast.success("Review submitted successfully.");
       onSuccess();
       onClose();
     } catch (error) {
@@ -55,14 +55,14 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
         <header className="space-y-4 mb-8">
            <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em]">Review Protocol</span>
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em]">Product Review</span>
            </div>
-           <h2 className="text-2xl font-serif italic text-white leading-tight">Rate your acquisition:<br/>{productName}</h2>
+           <h2 className="text-2xl font-serif italic text-white leading-tight">Review:<br/>{productName}</h2>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-4">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Neural Rating</label>
+            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Rating</label>
             <div className="flex gap-4">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -78,11 +78,11 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
           </div>
 
           <div className="space-y-4">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Analytical Feedback</label>
+            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Your Review</label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Inject your thoughts into the data stream..."
+              placeholder="Write your thoughts about this product..."
               className="w-full h-32 glass-light border border-white/10 rounded-2xl p-6 text-sm font-medium text-white outline-none focus:border-emerald-500/50 transition-all resize-none"
               required
             />
@@ -94,14 +94,14 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
               onClick={onClose}
               className="flex-1 py-4 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-white/5 transition-all"
             >
-              Abort
+              Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="flex-[2] py-4 bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Syncing...' : 'Log Review'}
+              {isSubmitting ? 'Submitting...' : 'Submit Review'}
             </button>
           </div>
         </form>

@@ -3,8 +3,20 @@ import { db } from '../server.js';
 import { body, validationResult } from 'express-validator';
 import axios from 'axios';
 import { authenticate, authenticateAny, AuthRequest, authorize } from '../middleware/auth.js';
+import { recordReferralRewardBlock } from './referralBlockchain.js';
 
 const router = Router();
+
+const safeJsonParse = (val: any, fallback: any = []) => {
+  if (!val) return fallback;
+  if (typeof val !== 'string') return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return fallback;
+  }
+};
+
 const getPaystackSecret = () => {
   const raw = process.env.PAYSTACK_SECRET || process.env.PAYSTACK_SECRET_KEY;
   if (raw && raw.startsWith('Ask_test_')) {
@@ -32,7 +44,7 @@ router.get('/', authenticateAny, async (req: AuthRequest, res: any) => {
 
     let orders = rows.map(row => ({
       ...row,
-      items: row.items ? JSON.parse(row.items) : []
+      items: safeJsonParse(row.items, [])
     }));
 
     // If filtering by supplier is needed (either logged in supplier or admin filtering)
@@ -43,11 +55,11 @@ router.get('/', authenticateAny, async (req: AuthRequest, res: any) => {
       const supplierProductIds = new Set(supplierProducts.map(p => p.id));
       
       orders = orders.filter(o => 
-        o.items.some((item: any) => supplierProductIds.has(item.id))
+        Array.isArray(o.items) && o.items.some((item: any) => supplierProductIds.has(item.id))
       ).map(o => ({
         ...o,
         // Only show items that belong to this supplier
-        items: o.items.filter((item: any) => supplierProductIds.has(item.id))
+        items: Array.isArray(o.items) ? o.items.filter((item: any) => supplierProductIds.has(item.id)) : []
       }));
     }
 
@@ -70,7 +82,7 @@ export async function createVerifiedOrder(payload: any) {
           throw new Error(`Bundle ${item.id} not found`);
         }
         // Optionally check products within bundle
-        const bundleProducts = JSON.parse(bundle.products || '[]');
+        const bundleProducts = safeJsonParse(bundle.products, []);
         for (const bp of bundleProducts) {
             const product = await db.get('SELECT stockCount, name FROM products WHERE id = ?', [bp.id || bp]);
             if (product && product.stockCount < (item.quantity || 1)) {
@@ -99,48 +111,93 @@ export async function createVerifiedOrder(payload: any) {
     [id, userId, userName, JSON.stringify(items), total, status, timestamp, trackingNumber, deliveryAddress, phone, creditUsed]
   );
 
-  // If this is the invitee's first purchase, reward the referrer with 10% of their total cart as store credit
-  if (isFirstPurchase) {
-    try {
-      const referral = await db.get('SELECT * FROM referrals WHERE referredId = ?', [userId]);
-      if (referral) {
-        const referrerId = referral.referrerId;
-        const bonusAmount = Number((total * 0.1).toFixed(2));
-        
-        if (bonusAmount > 0) {
-          // Update the referral record status and reward amount
-          await db.run('UPDATE referrals SET rewardAmount = rewardAmount + ? WHERE id = ?', [bonusAmount, referral.id]);
-          
-          // Fetch existing credit for referrer and update
+  // KFAM Lifetime Referral Program:
+  // "if the person they referred makes a purchase they get 10% of the product amount as credit round to the nearest whole number for life and you cant use the referal code of some one you referred, make sure to keep track of everything use blockchain method if you have to just let it work"
+  try {
+    const referral = await db.get('SELECT * FROM referrals WHERE (referredId = ? OR refereeId = ?)', [userId, userId]);
+    let referrerId = referral?.referrerId;
+    if (!referrerId) {
+      const userRow = await db.get('SELECT referredBy FROM users WHERE id = ?', [userId]);
+      referrerId = userRow?.referredBy;
+    }
+
+    if (referrerId && referrerId !== userId && referrerId !== 'guest' && referrerId !== 'undefined' && referrerId !== 'null') {
+      // Calculate product amount (sum of product prices * quantities)
+      let productAmount = 0;
+      if (Array.isArray(items) && items.length > 0) {
+        productAmount = items.reduce((sum: number, it: any) => {
+          const p = Number(it.price) || 0;
+          const q = Number(it.quantity) || 1;
+          return sum + (p * q);
+        }, 0);
+      } else {
+        productAmount = Number(total) || 0;
+      }
+
+      // 10% of the product amount rounded to the nearest whole number
+      const bonusCredit = Math.round(productAmount * 0.10);
+
+      if (bonusCredit > 0) {
+        // Prevent duplicate ledger entry for the same order
+        const existingBlock = await db.get('SELECT id FROM referral_ledger WHERE orderId = ?', [id]);
+        if (!existingBlock) {
+          // Record on immutable blockchain ledger
+          const newBlock = await recordReferralRewardBlock(db, {
+            referrerId,
+            referredUserId: userId,
+            orderId: id,
+            productAmount,
+            rewardAmount: bonusCredit,
+            metadata: {
+              itemsCount: Array.isArray(items) ? items.length : 1,
+              orderTotal: total,
+              buyerName: userName || 'Friend'
+            }
+          });
+
+          // Update referrals record
+          if (referral) {
+            await db.run(
+              `UPDATE referrals SET rewardAmount = rewardAmount + ?, status = 'completed', completedAt = ? WHERE id = ?`,
+              [bonusCredit, new Date().toISOString(), referral.id]
+            );
+          } else {
+            const refId = `ref_auto_${Date.now()}`;
+            await db.run(
+              `INSERT INTO referrals (id, referrerId, refereeId, referredId, code, status, rewardAmount, createdAt, completedAt)
+               VALUES (?, ?, ?, ?, 'AUTO_LIFETIME', 'completed', ?, ?, ?)`,
+              [refId, referrerId, userId, userId, bonusCredit, new Date().toISOString(), new Date().toISOString()]
+            );
+          }
+
+          // Credit referrer with store credit
           const referrer = await db.get('SELECT credit, rep FROM users WHERE id = ?', [referrerId]);
           if (referrer) {
-            const newReferrerCredit = (referrer.credit || 0) + bonusAmount;
+            const newReferrerCredit = (referrer.credit || 0) + bonusCredit;
             await db.run('UPDATE users SET credit = ? WHERE id = ?', [newReferrerCredit, referrerId]);
             await db.run('UPDATE user_stats SET storeCredit = ? WHERE userId = ?', [newReferrerCredit, referrerId]);
-            
-            // Create notification for referrer
-            if (referrerId && referrerId !== 'guest' && referrerId !== 'undefined' && referrerId !== 'null') {
-              const notificationId = `notif_ref_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-              const buyerName = userName || 'An invitee';
-              await db.run(
-                'INSERT INTO notifications (id, title, message, type, timestamp, read, recipientId) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [
-                  notificationId,
-                  'Referral First Purchase Reward',
-                  `Your invitee, ${buyerName}, completed their first purchase! You earned GH₵${bonusAmount} store credit (10% of their total cart of GH₵${total}).`,
-                  'ALERT',
-                  new Date().toISOString(),
-                  0,
-                  referrerId
-                ]
-              );
-            }
+
+            // Notification for referrer with blockchain verification details
+            const notificationId = `notif_ref_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+            const buyerName = userName || 'A referred friend';
+            await db.run(
+              'INSERT INTO notifications (id, title, message, type, timestamp, read, recipientId) VALUES (?, ?, ?, ?, ?, ?, ?)',
+              [
+                notificationId,
+                'KFAM Lifetime Referral Reward! 🎉',
+                `Your friend ${buyerName} made a purchase of GH₵${productAmount}! You earned GH₵${bonusCredit} store credit (10% lifetime commission, rounded to nearest whole number). Verified on Blockchain Block #${newBlock.blockIndex} [${newBlock.hash.slice(0, 10)}...].`,
+                'ALERT',
+                new Date().toISOString(),
+                0,
+                referrerId
+              ]
+            );
           }
         }
       }
-    } catch (err) {
-      console.error('Error processing first purchase referral reward:', err);
     }
+  } catch (err) {
+    console.error('Error processing lifetime referral reward:', err);
   }
 
   // 3. Deduct stock and handle out-of-stock Pay For Me, AND Update Supplier Revenues
@@ -153,7 +210,7 @@ export async function createVerifiedOrder(payload: any) {
       if (item.id.toString().startsWith('bundle_')) {
         const bundle = await db.get('SELECT products FROM bundles WHERE id = ?', [item.id]);
         if (bundle) {
-          const bundleProducts = JSON.parse(bundle.products || '[]');
+          const bundleProducts = safeJsonParse(bundle.products, []);
           for (const bp of bundleProducts) {
               itemsToUpdate.push({ id: bp.id || bp, quantity: item.quantity || 1 });
           }
@@ -181,8 +238,8 @@ export async function createVerifiedOrder(payload: any) {
           // Find Pay For Me requests containing this product
           const pfmRequests = await db.all("SELECT * FROM pay_for_me_requests WHERE status IN ('PENDING', 'APPROVED')");
           for (const pfm of pfmRequests) {
-            const pfmItems = JSON.parse(pfm.items || '[]');
-            const hasProduct = pfmItems.some((pi: any) => pi.id === target.id);
+            const pfmItems = safeJsonParse(pfm.items, []);
+            const hasProduct = Array.isArray(pfmItems) && pfmItems.some((pi: any) => pi.id === target.id);
             
             if (hasProduct) {
               // Close request
@@ -229,7 +286,7 @@ export async function createVerifiedOrder(payload: any) {
       
       // Update Supplier Wallet (Net Amount)
       const supplierWallet = await db.get('SELECT * FROM wallets WHERE id = ?', [sId]) || { id: sId, balance: 0, transactions: '[]' };
-      const supplierTxns = JSON.parse(supplierWallet.transactions || '[]');
+      const supplierTxns = safeJsonParse(supplierWallet.transactions, []);
       supplierTxns.push({
         id: Date.now().toString() + sId,
         type: 'EARNING',
@@ -244,7 +301,7 @@ export async function createVerifiedOrder(payload: any) {
 
       // Update Admin Wallet (Commission)
       const adminWallet = await db.get('SELECT * FROM wallets WHERE id = ?', ['ADMIN_WALLET']) || { id: 'ADMIN_WALLET', balance: 0, transactions: '[]' };
-      const adminTxns = JSON.parse(adminWallet.transactions || '[]');
+      const adminTxns = safeJsonParse(adminWallet.transactions, []);
       adminTxns.push({
         id: Date.now().toString() + 'ADMIN',
         type: 'COMMISSION',
@@ -361,7 +418,7 @@ router.patch('/:orderId/status', authenticateAny, async (req: AuthRequest, res: 
       const refundAmount = order.total;
       
       const userWallet = await db.get('SELECT * FROM wallets WHERE id = ?', [order.userId]) || { id: order.userId, balance: 0, transactions: '[]' };
-      const userTxns = JSON.parse(userWallet.transactions || '[]');
+      const userTxns = safeJsonParse(userWallet.transactions, []);
       
       userTxns.push({
         id: Date.now().toString() + 'REFUND',

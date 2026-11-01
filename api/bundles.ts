@@ -133,11 +133,61 @@ export async function initBundlesTable() {
 router.get('/', async (req, res) => {
   try {
     const rows = await db.all('SELECT * FROM bundles WHERE isActive = 1');
-    const bundles = rows.map((row: any) => ({
-      ...row,
-      items: row.items ? JSON.parse(row.items) : [],
-      products: row.items ? JSON.parse(row.items) : [] // backwards compatibility
-    }));
+    const bundles = [];
+
+    for (const row of rows) {
+      let rawItems: any[] = [];
+      try {
+        rawItems = row.items ? (typeof row.items === 'string' ? JSON.parse(row.items) : row.items) : [];
+      } catch (e) {
+        rawItems = [];
+      }
+
+      const populatedProducts: any[] = [];
+      for (const item of rawItems) {
+        const prodId = item.productId || item.id;
+        if (prodId) {
+          const prod = await db.get('SELECT * FROM products WHERE id = ?', [prodId]);
+          if (prod) {
+            let parsedImages = [prod.image];
+            if (prod.images) {
+              try {
+                parsedImages = typeof prod.images === 'string' ? JSON.parse(prod.images) : prod.images;
+              } catch (e) {
+                parsedImages = [prod.image];
+              }
+            }
+            let parsedSizes = [];
+            if (prod.sizes) {
+              try {
+                parsedSizes = typeof prod.sizes === 'string' ? JSON.parse(prod.sizes) : prod.sizes;
+              } catch (e) {
+                parsedSizes = [];
+              }
+            }
+
+            populatedProducts.push({
+              ...prod,
+              images: parsedImages,
+              sizes: parsedSizes,
+              quantityInBundle: item.quantity || 1
+            });
+          } else if (item.name) {
+            // Item already has product attributes
+            populatedProducts.push(item);
+          }
+        } else if (item.name) {
+          populatedProducts.push(item);
+        }
+      }
+
+      bundles.push({
+        ...row,
+        items: rawItems,
+        products: populatedProducts
+      });
+    }
+
     res.json(bundles);
   } catch (error) {
     console.error('Error fetching bundles:', error);

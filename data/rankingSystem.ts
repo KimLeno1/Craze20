@@ -12,6 +12,7 @@ export const RANK_THRESHOLDS = {
 export const RANK_BENEFITS: Record<string, RankBenefits> = {
   'Newcomer': {
     tier: 'Newcomer',
+    aiTryOnLimit: 2,
     vaultLimit: 5,
     ticketsPerPurchase: { tickets: 1, perItems: 3 },
     payForMeSlots: 1,
@@ -22,6 +23,7 @@ export const RANK_BENEFITS: Record<string, RankBenefits> = {
   },
   'Stylist': {
     tier: 'Stylist',
+    aiTryOnLimit: 6,
     vaultLimit: 12,
     ticketsPerPurchase: { tickets: 2, perItems: 5 },
     payForMeSlots: 2,
@@ -32,9 +34,10 @@ export const RANK_BENEFITS: Record<string, RankBenefits> = {
   },
   'Trendsetter': {
     tier: 'Trendsetter',
+    aiTryOnLimit: 12,
     vaultLimit: 20,
     ticketsPerPurchase: { tickets: 3, perItems: 5 },
-    payForMeSlots: 2,
+    payForMeSlots: 3,
     wishlistRetentionDays: 30,
     canSeeSponsors: false,
     canSeeOtherWishlists: false,
@@ -42,9 +45,10 @@ export const RANK_BENEFITS: Record<string, RankBenefits> = {
   },
   'Fashion Icon': {
     tier: 'Fashion Icon',
+    aiTryOnLimit: 18,
     vaultLimit: 30,
     ticketsPerPurchase: { tickets: 3, perItems: 1 },
-    payForMeSlots: 3,
+    payForMeSlots: 5,
     wishlistRetentionDays: 90,
     canSeeSponsors: true,
     canSeeOtherWishlists: true,
@@ -52,9 +56,10 @@ export const RANK_BENEFITS: Record<string, RankBenefits> = {
   },
   'Closet Royalty': {
     tier: 'Closet Royalty',
+    aiTryOnLimit: 24,
     vaultLimit: 35,
     ticketsPerPurchase: { tickets: 4, perItems: 3 },
-    payForMeSlots: 4,
+    payForMeSlots: 8,
     wishlistRetentionDays: 'PERMANENT',
     canSeeSponsors: true,
     canSeeOtherWishlists: true,
@@ -62,9 +67,10 @@ export const RANK_BENEFITS: Record<string, RankBenefits> = {
   },
   'Kraze Legend': {
     tier: 'Kraze Legend',
+    aiTryOnLimit: 30,
     vaultLimit: 50,
     ticketsPerPurchase: { tickets: 6, perItems: 3 },
-    payForMeSlots: 5,
+    payForMeSlots: 15,
     wishlistRetentionDays: 'PERMANENT',
     canSeeSponsors: true,
     canSeeOtherWishlists: true,

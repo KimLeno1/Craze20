@@ -11,7 +11,12 @@ const AdminPayForMeManager: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setRequests(await databaseService.getPayForMeRequests());
+      try {
+        const data = await databaseService.getPayForMeRequests();
+        setRequests(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setRequests([]);
+      }
     };
     fetchData();
   }, []);
@@ -22,14 +27,16 @@ const AdminPayForMeManager: React.FC = () => {
       if (result.status === 'success' || result.success) {
         toast.success(`Request marked as ${status}`);
         const updated = await databaseService.getPayForMeRequests();
-        setRequests(updated);
+        const safeUpdated = Array.isArray(updated) ? updated : [];
+        setRequests(safeUpdated);
         
         // Notify the user
-        const request = updated.find(r => r.id === requestId);
+        const request = safeUpdated.find(r => r.id === requestId);
         if (request) {
+          const firstItemName = (Array.isArray(request.items) && request.items[0]?.name) || 'item';
           await databaseService.sendNotification(
             `Pay For Me Request ${status}`,
-            `Your request for "${request.items[0].name}" has been ${status.toLowerCase()}.`,
+            `Your request for "${firstItemName}" has been ${status.toLowerCase()}.`,
             status === PayForMeStatus.APPROVED ? 'REWARD' : 'INFO',
             request.userId
           );
@@ -43,10 +50,13 @@ const AdminPayForMeManager: React.FC = () => {
     }
   };
 
-  const filteredRequests = requests.filter(r => {
+  const safeRequests = Array.isArray(requests) ? requests : [];
+  const filteredRequests = safeRequests.filter(r => {
+    if (!r) return false;
     const matchesFilter = filter === 'ALL' || r.status === filter;
-    const matchesSearch = r.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         r.items[0].name.toLowerCase().includes(searchTerm.toLowerCase());
+    const firstItemName = (Array.isArray(r.items) && r.items[0]?.name) || (r.items as any)?.name || '';
+    const matchesSearch = (r.userName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         firstItemName.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -95,18 +105,20 @@ const AdminPayForMeManager: React.FC = () => {
 
       {/* Requests List */}
       <div className="grid gap-4">
-        {filteredRequests.map((request) => (
+        {filteredRequests.map((request) => {
+          const item = (Array.isArray(request.items) && request.items[0]) || (request.items as any) || { name: 'Item', image: '' };
+          return (
           <div key={request.id} className="glass p-6 border-white/5 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-white/20 transition-all">
             <div className="flex items-center gap-6 flex-1">
-              <div className="w-16 h-20 rounded-xl overflow-hidden border border-white/10 shrink-0">
-                <img src={request.items[0].image} className="w-full h-full object-cover" />
+              <div className="w-16 h-20 rounded-xl overflow-hidden border border-white/10 shrink-0 bg-zinc-900">
+                <img src={item.image || ''} className="w-full h-full object-cover" alt={item.name || 'Product'} />
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-black text-white uppercase">{request.userName}</span>
                   <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">ID: {request.id}</span>
                 </div>
-                <div className="text-sm font-serif italic text-zinc-400">{request.items[0].name}</div>
+                <div className="text-sm font-serif italic text-zinc-400">{item.name}</div>
                 <div className="text-[10px] font-black text-[#00D1FF] uppercase tracking-widest">GH₵{request.total}</div>
                 {request.payerName && (
                   <div className="mt-2 p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
@@ -165,7 +177,8 @@ const AdminPayForMeManager: React.FC = () => {
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
 
         {filteredRequests.length === 0 && (
           <div className="py-20 text-center opacity-30 italic uppercase text-[10px] tracking-widest">No sponsorship requests matching criteria.</div>

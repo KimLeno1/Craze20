@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { ShieldCheck, Sparkles, MapPin, ZapOff, XCircle, CheckCircle2, MessageCircle, Quote, Award, Search, Users, ArrowRight, PackageCheck, Layers } from 'lucide-react';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
-import founderImg from '../src/assets/images/founder_portrait_1788141410409.jpg';
 import jacketImg from '../src/assets/images/curated_jacket_1788141447633.jpg';
 import cargoImg from '../src/assets/images/curated_cargo_1788141461478.jpg';
 import hoodieImg from '../src/assets/images/curated_hoodie_1788141474939.jpg';
@@ -23,7 +22,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       metaDesc.setAttribute('name', 'description');
       document.head.appendChild(metaDesc);
     }
-    metaDesc.setAttribute('content', 'We curate archival fashion, timeless silhouettes, and elevated style for Ghana. Every piece verified. WhatsApp: +233 55 387 7937.');
+    metaDesc.setAttribute('content', 'We curate archival fashion, timeless silhouettes, and elevated style for Ghana. Founded by Lemuel Akowan and Ayamga Methodius. WhatsApp: +233 55 387 7937.');
 
     // Set OpenGraph tags
     let ogTitle = document.querySelector('meta[property="og:title"]');
@@ -40,7 +39,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       ogDesc.setAttribute('property', 'og:description');
       document.head.appendChild(ogDesc);
     }
-    ogDesc.setAttribute('content', 'We curate archival fashion, timeless silhouettes, and elevated style for Ghana. Every piece verified. WhatsApp: +233 55 387 7937.');
+    ogDesc.setAttribute('content', 'We curate archival fashion, timeless silhouettes, and elevated style for Ghana. Founded by Lemuel Akowan and Ayamga Methodius. WhatsApp: +233 55 387 7937.');
 
     let ogImg = document.querySelector('meta[property="og:image"]');
     if (!ogImg) {
@@ -48,7 +47,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       ogImg.setAttribute('property', 'og:image');
       document.head.appendChild(ogImg);
     }
-    ogImg.setAttribute('content', 'https://closetkraze.top/src/assets/images/founder_portrait_1788141410409.jpg');
+    ogImg.setAttribute('content', 'https://closetkraze.top/logo1.png');
 
     // Schema.org Person & Organization JSON-LD microdata
     const schemaData = {
@@ -56,9 +55,9 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       "@graph": [
         {
           "@type": "Person",
-          "@id": "https://closetkraze.top/#leno-akowan",
-          "name": "Leno Akowan",
-          "jobTitle": "Founder & Chief Curator",
+          "@id": "https://closetkraze.top/#lemuel-akowan",
+          "name": "Lemuel Akowan",
+          "jobTitle": "Co-Founder & Chief Curator",
           "worksFor": { "@id": "https://closetkraze.top/#organization" },
           "address": {
             "@type": "PostalAddress",
@@ -67,8 +66,22 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             "addressCountry": "GH"
           },
           "telephone": "+233553877937",
-          "url": "https://closetkraze.top/about",
-          "sameAs": ["https://wa.me/233553877937"]
+          "url": "https://closetkraze.top/about"
+        },
+        {
+          "@type": "Person",
+          "@id": "https://closetkraze.top/#ayamga-methodius",
+          "name": "Ayamga Methodius",
+          "jobTitle": "Co-Founder & Operations Lead",
+          "worksFor": { "@id": "https://closetkraze.top/#organization" },
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Kumasi",
+            "addressRegion": "Ashanti",
+            "addressCountry": "GH"
+          },
+          "telephone": "+233553877937",
+          "url": "https://closetkraze.top/about"
         },
         {
           "@type": "Organization",
@@ -76,10 +89,14 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
           "name": "Closet Kraze",
           "url": "https://closetkraze.top",
           "logo": "https://closetkraze.top/logo1.png",
-          "founder": { "@id": "https://closetkraze.top/#leno-akowan" },
+          "founder": [
+            { "@id": "https://closetkraze.top/#lemuel-akowan" },
+            { "@id": "https://closetkraze.top/#ayamga-methodius" }
+          ],
           "address": {
             "@type": "PostalAddress",
             "addressLocality": "Kumasi",
+            "addressRegion": "Ashanti",
             "addressCountry": "GH"
           },
           "contactPoint": {
@@ -87,7 +104,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             "telephone": "+233553877937",
             "contactType": "customer service",
             "areaServed": "GH",
-            "availableLanguage": ["English", "Twi"]
+            "availableLanguage": ["English", "Dagbani", "Twi"]
           }
         }
       ]
@@ -107,33 +124,32 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
     };
   }, []);
 
-  const whatsappUrl = "https://wa.me/233553877937?text=Hey%20Leno%2C%20I'm%20reading%20the%20Closet%20Kraze%20About%20page%20and%20want%20to%20connect!";
+  const whatsappUrl = "https://wa.me/233553877937?text=Hey%20Lemuel%20and%20Methodius%2C%20I'm%20reading%20the%20Closet%20Kraze%20About%20page%20and%20want%20to%20connect!";
 
   return (
     <div className="min-h-screen bg-[#020617] text-white selection:bg-[#00D1FF] selection:text-black">
       {/* Top Archival Callout Banner */}
       <div className="bg-gradient-to-r from-blue-950 via-zinc-900 to-indigo-950 border-b border-zinc-800/80 py-3.5 px-4 text-center">
         <p className="text-xs sm:text-sm font-serif italic text-zinc-300 tracking-wide">
-          "Why archival? Because the best stories are already written." — <span className="font-mono not-italic font-bold text-[#00D1FF]">Leno Akowan, Curator</span>
+          "Why archival? Because the best stories are already written." — <span className="font-mono not-italic font-bold text-[#00D1FF]">Lemuel Akowan & Ayamga Methodius, Founders</span>
         </p>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 space-y-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-12 sm:space-y-16">
         
-        {/* HERO SECTION: Founder Photo + Intro */}
+        {/* HERO SECTION: Founders Initials + Intro */}
         <section className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-center">
-          {/* Founder Photo Column */}
+          {/* Founders Initials Column (No Pictures) */}
           <div className="md:col-span-5 flex flex-col items-center text-center">
             <div className="relative group">
               {/* Glowing ring animation */}
               <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#00D1FF] via-emerald-500 to-blue-600 opacity-75 blur-md group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative w-[200px] h-[200px] rounded-full overflow-hidden border-2 border-white/20 bg-zinc-900 shadow-2xl">
-                <img
-                  src={founderImg}
-                  alt="Leno Akowan — Founder & Curator of Closet Kraze"
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                />
+              <div className="relative w-[200px] h-[200px] rounded-full overflow-hidden border-2 border-white/20 bg-zinc-950 shadow-2xl flex items-center justify-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-4xl font-mono font-black text-[#00D1FF] tracking-tighter">LA</span>
+                  <span className="text-2xl font-serif italic text-zinc-500">&</span>
+                  <span className="text-4xl font-mono font-black text-emerald-400 tracking-tighter">AM</span>
+                </div>
               </div>
               <div className="absolute -bottom-2 right-2 bg-zinc-950 border border-zinc-700/80 px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[#00D1FF] flex items-center gap-1.5 shadow-lg">
                 <MapPin size={12} className="text-[#25D366]" />
@@ -142,9 +158,9 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             </div>
 
             <div className="mt-6 space-y-1">
-              <h1 className="text-3xl font-serif italic text-white tracking-tight">Leno Akowan</h1>
-              <p className="text-xs font-mono font-black uppercase tracking-[0.25em] text-[#00D1FF]">
-                Founder & Chief Curator
+              <h1 className="text-2xl sm:text-3xl font-serif italic text-white tracking-tight">Lemuel Akowan & Ayamga Methodius</h1>
+              <p className="text-xs font-mono font-black uppercase tracking-[0.2em] text-[#00D1FF]">
+                Co-Founders & Chief Curators (The Whole Team)
               </p>
               <p className="text-[11px] font-mono text-zinc-400">Closet Kraze Vault // Kumasi Hub</p>
             </div>
@@ -155,8 +171,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               rel="noopener noreferrer"
               className="mt-5 inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-2xl transition-all shadow-lg shadow-[#25D366]/20 active:scale-95"
             >
-              <WhatsAppIcon size={16} title="WhatsApp Leno Directly" />
-              Direct Chat with Leno
+              <WhatsAppIcon size={16} title="WhatsApp Founders Directly" />
+              Direct Chat with Founders
             </a>
           </div>
 
@@ -164,7 +180,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
           <div className="md:col-span-7 space-y-6 text-left">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[#00D1FF] text-[10px] font-mono font-bold uppercase tracking-widest">
               <Sparkles size={12} />
-              The Curator Archetype
+              The Founders & Entire Team
             </div>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif italic leading-tight text-white">
@@ -172,7 +188,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             </h2>
 
             <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-sans font-normal">
-              Closet Kraze is an independent fashion vault engineered in Kumasi, Ashanti Region. Every piece on our grid is individually selected, physical-inspected for fabric weight, seams, hardware, and authenticity before it touches our dispatch unit.
+              Closet Kraze is an independent fashion vault engineered in Kumasi, Ashanti Region, by Lemuel Akowan and Ayamga Methodius. We are the sole minds and operators behind every piece curated, inspected, and dispatched.
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-zinc-800/80">
@@ -185,8 +201,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                 <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">Ghana Dispatch</span>
               </div>
               <div className="bg-zinc-900/60 border border-zinc-800 p-4 rounded-2xl col-span-2 sm:col-span-1">
-                <span className="text-2xl font-mono font-black text-[#25D366] block">0%</span>
-                <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">Fake Hype Strategy</span>
+                <span className="text-2xl font-mono font-black text-[#25D366] block">2-Man</span>
+                <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">Independent Team</span>
               </div>
             </div>
           </div>
@@ -200,7 +216,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             <div className="flex items-center gap-3">
               <span className="w-2 h-2 rounded-full bg-[#00D1FF]" />
               <span className="text-xs font-mono font-black uppercase tracking-[0.3em] text-zinc-400">
-                Origin Story // Kumasi Roots
+                Origin Story // Ashanti Roots
               </span>
             </div>
 
@@ -213,10 +229,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                 Charley, if you live in Ghana and love proper fashion and style, you already know the struggle. You go online, you see sharp tailored silhouettes, Japanese cargo trousers, and vintage washed knitwear with real weight. But when you try buying locally, it's either unverified bootlegs from random sellers or crazy markup prices from people who don't even know what GSM, authentic tailoring, or YKK zippers mean.
               </p>
               <p>
-                Back in 2023, right here in Kumasi around KNUST, I started sourcing authentic pieces for a few close friends. We were hunting for garments with true history—heavy canvas parkas, seam-sealed utility shells, deadstock UK thrift grails, and factory surplus tailoring. When people saw the weight of the cotton, the custom zippers, and the genuine tags, the demand went crazy.
+                Back in 2023, right here in Kumasi, I started sourcing authentic pieces for a few close friends. We were hunting for garments with true history—heavy canvas parkas, seam-sealed utility shells, deadstock UK thrift grails, and factory surplus tailoring. When people saw the weight of the cotton, the custom zippers, and the genuine tags, the demand went crazy.
               </p>
               <p>
-                That is how Closet Kraze was born. Not as a fast fashion boutique, and definitely not as a fake hype page. We are curators of fashion and personal style. We test every zipper, check every seam, verify every tag, and weigh every garment in our Kumasi vault before listing it. When you buy a silhouette from Closet Kraze, you are holding a piece that was physically handpicked and verified by people who respect the culture as much as you do.
+                That is how Closet Kraze was born. Not as a fast fashion boutique, and definitely not as a fake hype page. We are curators of fashion and personal style. We test every zipper, check every seam, verify every tag, and weigh every garment in our vault before listing it. When you buy a silhouette from Closet Kraze, you are holding a piece that was physically handpicked and verified by people who respect the culture as much as you do.
               </p>
             </div>
 
@@ -238,7 +254,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               Anatomy of a Curated Drop
             </h3>
             <p className="text-xs font-mono text-zinc-400 max-w-lg mx-auto">
-              Three archival silhouettes hand-selected and verified in our Kumasi vault.
+              Three archival silhouettes hand-selected and verified in our vault.
             </p>
           </div>
 
@@ -252,7 +268,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <span className="absolute top-4 left-4 bg-zinc-950/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[#00D1FF] border border-zinc-700">
+                <span className="absolute top-4 left-4 bg-zinc-950/90 px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[#00D1FF] border border-zinc-700">
                   450 GSM Technical Canvas
                 </span>
               </div>
@@ -277,7 +293,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <span className="absolute top-4 left-4 bg-zinc-950/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[#00D1FF] border border-zinc-700">
+                <span className="absolute top-4 left-4 bg-zinc-950/90 px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[#00D1FF] border border-zinc-700">
                   Deadstock Archival
                 </span>
               </div>
@@ -302,7 +318,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <span className="absolute top-4 left-4 bg-zinc-950/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[#00D1FF] border border-zinc-700">
+                <span className="absolute top-4 left-4 bg-zinc-950/90 px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[#00D1FF] border border-zinc-700">
                   500 GSM Organic Cotton
                 </span>
               </div>
@@ -339,7 +355,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               </div>
               <h4 className="text-lg font-serif italic text-white">1. Authenticity First</h4>
               <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-                Every garment passes a multi-point physical verification protocol in Kumasi before listing. We verify zipper hardware, seam thread density, neck tags, and wash tags so you never receive a bootleg.
+                Every garment passes a multi-point physical verification protocol before listing. We verify zipper hardware, seam thread density, neck tags, and wash tags so you never receive a bootleg.
               </p>
             </div>
 
@@ -361,7 +377,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               </div>
               <h4 className="text-lg font-serif italic text-white">3. Local-First Logistics</h4>
               <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-                We operate directly out of Kumasi with express parcel routes across Ghana. Enjoy same-day delivery in Kumasi and 24-hour door-to-door delivery in Accra, Tema, Takoradi, and Tamale.
+                We operate directly out of Kumasi with express parcel routes across Ghana. Enjoy same-day delivery in Kumasi and 24-hour door-to-door delivery in Accra, Tamale, Tema, and Takoradi.
               </p>
             </div>
 
@@ -405,7 +421,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               <div>
                 <h5 className="text-sm font-bold text-white mb-1">No Unverified Drops</h5>
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                  Every single piece must sit on our inspection table in Kumasi first. We never drop virtual items that we haven't physically held.
+                  Every single piece must sit on our inspection table first. We never drop virtual items that we haven't physically held.
                 </p>
               </div>
             </div>
@@ -477,49 +493,38 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               Behind The Vault
             </span>
             <h3 className="text-2xl sm:text-3xl font-serif italic text-white">
-              Meet The Kumasi Core Team
+              The Entire Team (Two-Man Operation)
             </h3>
+            <p className="text-xs text-zinc-400 max-w-lg mx-auto">
+              Closet Kraze is proudly independent and owner-operated. Lemuel and Methodius handle every single drop, inspection, and dispatch directly.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {/* Founder */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Lemuel Akowan */}
             <div className="bg-zinc-900/60 border border-zinc-800 p-6 rounded-3xl text-center space-y-3">
-              <div className="w-24 h-24 rounded-full overflow-hidden mx-auto border border-[#00D1FF]/40 shadow-xl">
-                <img src={founderImg} alt="Leno Akowan" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <div className="w-24 h-24 rounded-full bg-zinc-950 border border-[#00D1FF]/40 mx-auto flex items-center justify-center text-3xl font-mono font-black text-[#00D1FF] shadow-xl">
+                LA
               </div>
               <div>
-                <h4 className="text-base font-bold text-white">Leno Akowan</h4>
-                <p className="text-xs font-mono text-[#00D1FF] font-semibold">Founder & Chief Curator</p>
+                <h4 className="text-base font-bold text-white">Lemuel Akowan</h4>
+                <p className="text-xs font-mono text-[#00D1FF] font-semibold">Co-Founder & Chief Curator</p>
                 <p className="text-[11px] text-zinc-400 mt-2 font-sans">
-                  Oversees all drop selections, international sourcing relationships, and strategic vision from Kumasi.
+                  Oversees brand direction, curations, vault drops, and international relationships.
                 </p>
               </div>
             </div>
 
-            {/* Team 2 */}
+            {/* Ayamga Methodius */}
             <div className="bg-zinc-900/60 border border-zinc-800 p-6 rounded-3xl text-center space-y-3">
-              <div className="w-24 h-24 rounded-full bg-zinc-800 border border-zinc-700 mx-auto flex items-center justify-center text-2xl font-mono font-black text-zinc-400">
-                KO
+              <div className="w-24 h-24 rounded-full bg-zinc-950 border border-emerald-500/40 mx-auto flex items-center justify-center text-3xl font-mono font-black text-emerald-400 shadow-xl">
+                AM
               </div>
               <div>
-                <h4 className="text-base font-bold text-white">Kwame Osei</h4>
-                <p className="text-xs font-mono text-emerald-400 font-semibold">Authentication & QC Lead</p>
+                <h4 className="text-base font-bold text-white">Ayamga Methodius</h4>
+                <p className="text-xs font-mono text-emerald-400 font-semibold">Co-Founder & Operations Lead</p>
                 <p className="text-[11px] text-zinc-400 mt-2 font-sans">
-                  Inspects every garment stitch, zipper, and seam density before approving items for site listing.
-                </p>
-              </div>
-            </div>
-
-            {/* Team 3 */}
-            <div className="bg-zinc-900/60 border border-zinc-800 p-6 rounded-3xl text-center space-y-3">
-              <div className="w-24 h-24 rounded-full bg-zinc-800 border border-zinc-700 mx-auto flex items-center justify-center text-2xl font-mono font-black text-zinc-400">
-                AB
-              </div>
-              <div>
-                <h4 className="text-base font-bold text-white">Ama Boateng</h4>
-                <p className="text-xs font-mono text-cyan-400 font-semibold">Logistics & Client Relations</p>
-                <p className="text-[11px] text-zinc-400 mt-2 font-sans">
-                  Manages VIP & STC dispatch hubs, tracking, and direct customer support across all regions in Ghana.
+                  Manages physical authentication, quality control, dispatch, and client support.
                 </p>
               </div>
             </div>
@@ -543,7 +548,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                 "Closet Kraze has quietly built the most trusted archival fashion repository for collectors in West Africa, proving that local verification beats global hype."
               </p>
               <footer className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-wider">
-                — Kumasi Street Culture Digest (2025)
+                — Ghana Street Culture Digest (2025)
               </footer>
             </blockquote>
 
@@ -571,7 +576,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             </h3>
 
             <p className="text-xs sm:text-sm text-zinc-300 font-sans">
-              DM me directly on WhatsApp. I personally answer every question from our Kumasi vault.
+              DM me directly on WhatsApp. I personally answer every question from our vault.
             </p>
 
             <div className="pt-2">

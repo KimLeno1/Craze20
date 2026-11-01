@@ -7,6 +7,9 @@ import Footer from './components/Footer';
 import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
 import CookieConsent from './components/CookieConsent';
 import LegalPanel from './components/LegalPanel';
+import GlobalLoadingBar from './components/GlobalLoadingBar';
+import { triggerHaptic } from './lib/haptics';
+import { triggerGlobalLoading } from './lib/loading';
 
 const lazyImport = (factory: () => Promise<any>) => React.lazy(async () => {
   try {
@@ -69,6 +72,8 @@ const ComparisonView = lazyImport(() => import('./components/ComparisonView'));
 const KFamView = lazyImport(() => import('./components/KFamView'));
 const AboutPage = lazyImport(() => import('./components/AboutPage'));
 const PrivacyPage = lazyImport(() => import('./components/PrivacyPage'));
+const PWAPromptModal = lazyImport(() => import('./components/PWAPromptModal'));
+const FittingRoom = lazyImport(() => import('./components/FittingRoom'));
 import { Scale } from 'lucide-react';
 import { motion } from 'motion/react';
 import { databaseService } from './services/databaseService';
@@ -419,19 +424,31 @@ const MainApp: React.FC = () => {
     }
   }, [fetchProducts]);
 
-  // Handle deep linking to products
+  // Handle deep linking to products with metadata (size, message, ID)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const pId = params.get('productId');
-    if (pId && products.length > 0) {
-      const product = products.find(p => p.id === pId);
+    const pId = params.get('productId') || params.get('product');
+    const msg = params.get('msg');
+
+    if (!pId) return;
+
+    const resolveProduct = async () => {
+      let product = products.find(p => p.id === pId);
+      if (!product) {
+        product = await databaseService.getProductById(pId) || undefined;
+      }
       if (product) {
         setSelectedProduct(product);
-        // Clear param to keep URL clean after processing
+        if (msg) {
+          toast.info(`Shared Note: "${msg}"`, { duration: 5000 });
+        }
+        // Clean URL while keeping session clean
         const baseUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, baseUrl);
       }
-    }
+    };
+
+    resolveProduct();
   }, [products]);
 
   // Periodically check maintenance mode
@@ -626,62 +643,69 @@ const MainApp: React.FC = () => {
       }
       try {
         const profile = await databaseService.getUserProfile(userId);
-        if (profile.status === 'BANNED') {
+        if (profile && profile.status === 'BANNED') {
           setIsBanned(true);
           return;
         }
-        setRep(profile.rep ?? 8500);
-        setCredit(profile.credit ?? 0);
-        setHandle(profile.handle || 'Anonymous');
-        setGenderState(profile.gender || '');
-        if (profile.stats) {
-          setStats(profile.stats);
-        } else {
-          setStats(prev => ({ ...prev, userId }));
-        }
-        if (profile.preferences) {
-          setUserPrefs(profile.preferences);
-          if (profile.preferences.tutorialFinished) {
-            setTutorialFinished(true);
-            localStorage.setItem('cc-tutorial-finished', 'true');
+        if (profile) {
+          setRep(profile.rep ?? 8500);
+          setCredit(profile.credit ?? 0);
+          setHandle(profile.handle || 'Anonymous');
+          setGenderState(profile.gender || '');
+          if (profile.stats) {
+            setStats(profile.stats);
+          } else {
+            setStats(prev => ({ ...prev, userId }));
+          }
+          if (profile.preferences) {
+            setUserPrefs(profile.preferences);
+            if (profile.preferences.tutorialFinished) {
+              setTutorialFinished(true);
+              localStorage.setItem('cc-tutorial-finished', 'true');
+            }
           }
         }
         
-        // Fetch wishlist and cart from backend
+        // Fetch wishlist and cart from backend safely
         const backendWishlist = await databaseService.getWishlist(userId);
-        setWishlist(backendWishlist.map((p: any) => p.id));
+        if (Array.isArray(backendWishlist)) {
+          setWishlist(backendWishlist.map((p: any) => typeof p === 'object' && p !== null ? p.id : p).filter(Boolean));
+        }
         
         const backendCartRaw = await databaseService.getCart(userId);
-        const backendCart = backendCartRaw.map((item: any) => ({
+        const backendCart = Array.isArray(backendCartRaw) ? backendCartRaw.map((item: any) => ({
           ...item,
           id: item.id || item.productId
-        }));
+        })) : [];
         
         setCart((prevLocal: any[]) => {
           const merged = [...backendCart];
-          prevLocal.forEach(localItem => {
-            const existsOnBackend = merged.find(bItem => 
-              bItem.id === localItem.id && 
-              (bItem.selectedSize || undefined) === (localItem.selectedSize || undefined) &&
-              JSON.stringify(bItem.selectedColorVariant || null) === JSON.stringify(localItem.selectedColorVariant || null) &&
-              JSON.stringify(bItem.customizationData || null) === JSON.stringify(localItem.customizationData || null)
-            );
-            if (!existsOnBackend) {
-              merged.push(localItem);
-              databaseService.addToCart(userId, {
-                productId: localItem.id,
-                name: localItem.name,
-                price: localItem.price,
-                originalPrice: localItem.originalPrice,
-                image: localItem.image,
-                category: localItem.category,
-                quantity: localItem.quantity,
-                selectedSize: localItem.selectedSize,
-                selectedColorVariant: localItem.selectedColorVariant,
-                customizationData: localItem.customizationData
-              }).catch(err => console.error('Failed to sync guest item to backend:', err));
-            }
-          });
+          if (Array.isArray(prevLocal)) {
+            prevLocal.forEach(localItem => {
+              if (!localItem) return;
+              const existsOnBackend = merged.find(bItem => 
+                bItem.id === localItem.id && 
+                (bItem.selectedSize || undefined) === (localItem.selectedSize || undefined) &&
+                JSON.stringify(bItem.selectedColorVariant || null) === JSON.stringify(localItem.selectedColorVariant || null) &&
+                JSON.stringify(bItem.customizationData || null) === JSON.stringify(localItem.customizationData || null)
+              );
+              if (!existsOnBackend) {
+                merged.push(localItem);
+                databaseService.addToCart(userId, {
+                  productId: localItem.id,
+                  name: localItem.name,
+                  price: localItem.price,
+                  originalPrice: localItem.originalPrice,
+                  image: localItem.image,
+                  category: localItem.category,
+                  quantity: localItem.quantity,
+                  selectedSize: localItem.selectedSize,
+                  selectedColorVariant: localItem.selectedColorVariant,
+                  customizationData: localItem.customizationData
+                }).catch(err => console.error('Failed to sync guest item to backend:', err));
+              }
+            });
+          }
           return merged;
         });
 
@@ -864,9 +888,10 @@ const MainApp: React.FC = () => {
   }, []);
 
   const addToCart = async (product: Product, selectedSize?: string, selectedColorVariant?: { main: string; secondary: string }, customizationData?: Record<string, string>) => {
+    triggerGlobalLoading(600);
     // Stock Check
     if (!product.inStock || product.stockCount <= 0) {
-      toast.error('Strategic alert: This silhouette is currently out of stock.');
+      toast.error('This item is currently out of stock.');
       return;
     }
 
@@ -885,6 +910,9 @@ const MainApp: React.FC = () => {
         }
       }
     }
+
+    // Physical haptic confirmation
+    triggerHaptic('success');
 
     // Optimistic local update for offline persistence
     const newItem: CartItem = {
@@ -945,7 +973,7 @@ const MainApp: React.FC = () => {
 
   const handleQuickBuy = (product: Product) => {
     if (!product.inStock || product.stockCount <= 0) {
-      toast.error('Strategic alert: This silhouette is currently out of stock.');
+      toast.error('This item is currently out of stock.');
       return;
     }
 
@@ -1021,6 +1049,7 @@ const MainApp: React.FC = () => {
   };
 
   const toggleWishlist = async (product: Product) => {
+    triggerHaptic('like');
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
@@ -1040,7 +1069,9 @@ const MainApp: React.FC = () => {
         }
         // Refresh wishlist from backend
         const backendWishlist = await databaseService.getWishlist(userId);
-        setWishlist(backendWishlist.map(p => p.id));
+        if (Array.isArray(backendWishlist)) {
+          setWishlist(backendWishlist.map((p: any) => typeof p === 'object' && p !== null ? p.id : p).filter(Boolean));
+        }
       } catch (error) {
         console.error('Error toggling wishlist on backend:', error);
       }
@@ -1212,6 +1243,7 @@ const MainApp: React.FC = () => {
   };
 
   const handleNavigateView = (view: ViewState, skipAuthCheck: boolean = false) => {
+    triggerGlobalLoading(600);
     const protectedViews = [
       ViewState.PROFILE, 
       ViewState.WISHLIST, 
@@ -1364,8 +1396,8 @@ const MainApp: React.FC = () => {
       if (!isAuthenticated) return;
       try {
         const orders = await databaseService.getOrders();
-        const userOrders = orders.filter(o => o.userId === stats.userId || o.userName === handle);
-        const ids = userOrders.flatMap(o => o.items.map(i => i.id));
+        const userOrders = Array.isArray(orders) ? orders.filter(o => o && (o.userId === stats.userId || o.userName === handle)) : [];
+        const ids = userOrders.flatMap(o => Array.isArray(o?.items) ? o.items.map((i: any) => i?.id).filter(Boolean) : []);
         setHaulProductIds([...new Set(ids)]);
       } catch (error) {
         console.error('Error fetching haul data:', error);
@@ -1420,7 +1452,7 @@ const MainApp: React.FC = () => {
               userId={stats.userId} 
               products={sortedProducts} 
               categories={categories}
-              userHandle={handle || 'Archiver'} 
+              userHandle={handle || 'Member'} 
               socialPosts={socialPosts} 
               wishlist={wishlist} 
               onNavigate={handleNavigateView} 
@@ -1454,27 +1486,29 @@ const MainApp: React.FC = () => {
         );
       case ViewState.FAMOUS:
         return (
-          <FamousProducts 
-            products={selectedCategory === 'All' ? sortedProducts : sortedProducts.filter(p => matchesCategory(p, selectedCategory, categories))} 
-            wishlist={wishlist} 
-            onProductClick={setSelectedProduct} 
-            onAddToCart={(p) => {
-              if ((p.sizes && p.sizes.length > 0) || p.isCustom) {
-                setSelectedProduct(p);
-                databaseService.trackAction(stats.userId, p.id, 'view');
-              } else {
-                addToCart(p);
-              }
-            }} 
-            onToggleWishlist={toggleWishlist} 
-            limitedOfferEnd={limitedOfferEnd}
-            onToggleCompare={toggleComparison}
-            comparisonList={comparisonList}
-            loading={isInitializing}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            onNavigate={handleNavigateView}
-          />
+          <SectionErrorBoundary sectionName="Famous Products">
+            <FamousProducts 
+              products={sortedProducts} 
+              wishlist={wishlist} 
+              onProductClick={setSelectedProduct} 
+              onAddToCart={(p) => {
+                if ((p.sizes && p.sizes.length > 0) || p.isCustom) {
+                  setSelectedProduct(p);
+                  databaseService.trackAction(stats.userId, p.id, 'view');
+                } else {
+                  addToCart(p);
+                }
+              }} 
+              onToggleWishlist={toggleWishlist} 
+              limitedOfferEnd={limitedOfferEnd}
+              onToggleCompare={toggleComparison}
+              comparisonList={comparisonList}
+              loading={isInitializing}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              onNavigate={handleNavigateView}
+            />
+          </SectionErrorBoundary>
         );
       case ViewState.STYLIST:
         return <StylistAI 
@@ -1483,11 +1517,23 @@ const MainApp: React.FC = () => {
            onUpdateStats={handleUpdateStats} 
            products={products}
            onProductClick={setSelectedProduct}
+           onNavigate={handleNavigateView}
+           wishlistProducts={products.filter(p => wishlist.includes(p.id))}
+           haulProducts={products.filter(p => haulProductIds.includes(p.id))}
         />;
       case ViewState.BUNDLES: 
         return (
           <SectionErrorBoundary sectionName="Bundles">
-            <Bundles bundles={bundles} onAddBundle={addBundleToCart} loading={isInitializing} />
+            <Bundles 
+              bundles={bundles} 
+              onAddBundle={addBundleToCart} 
+              loading={isInitializing}
+              onProductClick={(p) => {
+                databaseService.trackAction(stats.userId, p.id, 'view');
+                setSelectedProduct(p);
+              }}
+              onNavigate={handleNavigateView}
+            />
           </SectionErrorBoundary>
         );
       case ViewState.CATEGORIES: 
@@ -1495,6 +1541,55 @@ const MainApp: React.FC = () => {
           <SectionErrorBoundary sectionName="Categories">
             <Categories categories={categories} onSelectCategory={setSelectedCategory} onNavigate={handleNavigateView} />
           </SectionErrorBoundary>
+        );
+      case ViewState.TRY_ON:
+        return (
+          <FittingRoom 
+            products={products}
+            stats={stats}
+            rank={getCurrentRank(rep)}
+            onNavigate={handleNavigateView}
+            onLockLook={async (items) => {
+              const userId = stats.userId || localStorage.getItem('cc-user-id');
+              if (!userId || userId === 'guest') {
+                toast.error("Please sign in to lock and save your look!");
+                return;
+              }
+              try {
+                const outfitName = `Look #${Math.floor(100 + Math.random() * 900)}`;
+                await databaseService.saveOutfit(userId, { name: outfitName, items });
+                toast.success(`Look "${outfitName}" locked and saved to your profile!`);
+                await gainRep(50);
+              } catch (error) {
+                console.error("Error saving outfit:", error);
+                toast.error("Failed to save outfit look.");
+              }
+            }}
+            wishlistProducts={products.filter(p => wishlist.includes(p.id))}
+            haulProducts={products.filter(p => haulProductIds.includes(p.id))}
+            onTryOnUsed={async () => {
+              const userId = stats.userId || localStorage.getItem('cc-user-id');
+              if (userId && userId !== 'guest') {
+                const token = localStorage.getItem('ck_user_token') || localStorage.getItem('cc-auth-token') || localStorage.getItem('cc_auth_token');
+                if (token) {
+                  try {
+                    await fetch('/api/user/ai-usage', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                      },
+                      body: JSON.stringify({ type: 'tryon' })
+                    });
+                  } catch (e) {}
+                }
+              }
+              handleUpdateStats({
+                ...stats,
+                aiTryOnsUsedToday: (stats.aiTryOnsUsedToday || 0) + 1
+              });
+            }}
+          />
         );
       case ViewState.PROFILE: 
         return (
@@ -1593,8 +1688,8 @@ const MainApp: React.FC = () => {
         // Refresh haul
         if (isAuthenticated) {
           const orders = await databaseService.getOrders();
-          const userOrders = orders.filter(o => o.userId === stats.userId || o.userName === handle);
-          const ids = userOrders.flatMap(o => o.items.map(i => i.id));
+          const userOrders = Array.isArray(orders) ? orders.filter(o => o && (o.userId === stats.userId || o.userName === handle)) : [];
+          const ids = userOrders.flatMap(o => Array.isArray(o?.items) ? o.items.map((i: any) => i?.id).filter(Boolean) : []);
           setHaulProductIds([...new Set(ids)]);
         }
       }} userHandle={handle} userId={stats.userId} />;
@@ -1664,8 +1759,8 @@ const MainApp: React.FC = () => {
             // Refresh haul
             if (isAuthenticated) {
               const orders = await databaseService.getOrders();
-              const userOrders = orders.filter(o => o.userId === stats.userId || o.userName === handle);
-              const ids = userOrders.flatMap(o => o.items.map(i => i.id));
+              const userOrders = Array.isArray(orders) ? orders.filter(o => o && (o.userId === stats.userId || o.userName === handle)) : [];
+              const ids = userOrders.flatMap(o => Array.isArray(o?.items) ? o.items.map((i: any) => i?.id).filter(Boolean) : []);
               setHaulProductIds([...new Set(ids)]);
             }
             setCurrentView(ViewState.LOBBY); 
@@ -1679,7 +1774,7 @@ const MainApp: React.FC = () => {
           rank={currentRank} 
         />
       );
-      default: return <Lobby userId={stats.userId} products={products} categories={categories} userHandle={handle || 'Archiver'} socialPosts={socialPosts} wishlist={wishlist} onNavigate={handleNavigateView} onAddToCart={addToCart} onToggleWishlist={toggleWishlist} onProductClick={(p) => { databaseService.trackAction(stats.userId, p.id, 'view'); setSelectedProduct(p); }} onCompleteQuest={() => {}} onGainRep={gainRep} isAuthenticated={isAuthenticated} tutorialFinished={tutorialFinished} limitedOfferEnd={limitedOfferEnd} userPrefs={userPrefs} onQuickBuy={handleQuickBuy} />;
+      default: return <Lobby userId={stats.userId} products={products} categories={categories} userHandle={handle || 'Member'} socialPosts={socialPosts} wishlist={wishlist} onNavigate={handleNavigateView} onAddToCart={addToCart} onToggleWishlist={toggleWishlist} onProductClick={(p) => { databaseService.trackAction(stats.userId, p.id, 'view'); setSelectedProduct(p); }} onCompleteQuest={() => {}} onGainRep={gainRep} isAuthenticated={isAuthenticated} tutorialFinished={tutorialFinished} limitedOfferEnd={limitedOfferEnd} userPrefs={userPrefs} onQuickBuy={handleQuickBuy} />;
     }
   };
 
@@ -1687,6 +1782,7 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-[#0F52BA] selection:text-white transition-colors duration-500 text-zinc-950 bg-white">
+      <GlobalLoadingBar />
       <Toaster position="top-right" richColors closeButton />
       
       {!isStandaloneView && (
@@ -1694,6 +1790,7 @@ const MainApp: React.FC = () => {
           <Header
             onNotificationOpen={() => setIsNotificationOpen(true)} 
             cartCount={cart.reduce((a, b) => a + b.quantity, 0)} 
+            wishlistCount={wishlist.length}
             stats={stats}
             onCartOpen={() => setIsCartOpen(true)}
             onOpenSearch={() => setIsSearchOpen(true)}
@@ -1711,14 +1808,14 @@ const MainApp: React.FC = () => {
           {/* Floating Comparison Bar */}
           {comparisonList.length > 0 && !isComparisonOpen && (
             <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-10 duration-500">
-              <div className="bg-zinc-950/90 backdrop-blur-xl border border-[#0F52BA]/40 px-6 py-4 rounded-full shadow-[0_12px_40px_rgba(15,82,186,0.25)] flex items-center gap-6">
+              <div className="bg-white border border-zinc-200 px-6 py-4 rounded-full shadow-2xl flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <Scale className="w-4 h-4 text-[#0F52BA]" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white">{comparisonList.length} Silhouettes Selected</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-900">{comparisonList.length} Items Selected</span>
                 </div>
                 <div className="flex -space-x-3">
                   {comparisonList.map(p => (
-                    <div key={p.id} className="w-8 h-8 rounded-full border-2 border-[#020617] overflow-hidden glass-grey">
+                    <div key={p.id} className="w-8 h-8 rounded-full border-2 border-white shadow-sm overflow-hidden bg-zinc-100">
                       <img src={p.image} className="w-full h-full object-cover" alt={p.name} />
                     </div>
                   ))}
@@ -1731,7 +1828,7 @@ const MainApp: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => setComparisonList([])}
-                  className="text-[9px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors"
+                  className="text-[9px] font-black text-zinc-400 hover:text-zinc-900 uppercase tracking-widest transition-colors"
                 >
                   Clear All
                 </button>
@@ -1751,7 +1848,7 @@ const MainApp: React.FC = () => {
         />
       )}
 
-      <main className={`${isStandaloneView ? '' : 'pt-[138px] pb-16 sm:pt-[138px] sm:pb-20 md:pt-[138px] md:pb-24'} flex-1 overflow-x-hidden w-full flex flex-col justify-between`}>
+      <main className={`${isStandaloneView ? '' : 'pt-[106px] pb-[88px] sm:pb-[96px] md:pb-[112px] sm:pt-[108px] md:pt-[112px]'} flex-1 overflow-x-hidden w-full flex flex-col justify-between`}>
         <Suspense fallback={<div className="flex-1 flex items-center justify-center py-20"><div className="w-8 h-8 border-2 border-[#0F52BA] border-t-transparent rounded-full animate-spin"></div></div>}>
           {renderView()}
         </Suspense>
@@ -1876,6 +1973,8 @@ const MainApp: React.FC = () => {
                 product={selectedProduct} 
                 stats={stats} 
                 allProducts={products} 
+                categories={categories}
+                wishlistIds={wishlist}
                 onClose={() => setSelectedProduct(null)} 
                 onAddToCart={addToCart} 
                 onUpdateSynergy={() => {}} 
@@ -1887,6 +1986,7 @@ const MainApp: React.FC = () => {
                 onToggleCompare={toggleComparison}
                 isComparing={comparisonList.some(p => p.id === selectedProduct.id)}
                 onQuickBuy={handleQuickBuy}
+                onUpdateStats={setStats}
               />
             )}
 
@@ -2005,6 +2105,7 @@ const MainApp: React.FC = () => {
 
             <VaultEntrance />
             <CookieConsent />
+            <PWAPromptModal />
           </Suspense>
           
           {/* Maintenance Screen */}

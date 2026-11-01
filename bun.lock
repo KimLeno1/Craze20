@@ -7,6 +7,7 @@
       "dependencies": {
         "@aws-sdk/client-s3": "^3.1121.0",
         "@google/genai": "^1.41.0",
+        "@gradio/client": "^2.5.1",
         "@paystack/inline-js": "^2.22.8",
         "@sentry/react": "^10.72.0",
         "@tailwindcss/vite": "^4.2.2",
@@ -159,6 +160,8 @@
     "@esbuild/linux-x64": ["@esbuild/linux-x64@0.28.1", "", { "os": "linux", "cpu": "x64" }, ""],
 
     "@google/genai": ["@google/genai@1.52.0", "", { "dependencies": { "google-auth-library": "^10.3.0", "p-retry": "^4.6.2", "protobufjs": "^7.5.4", "ws": "^8.18.0" }, "peerDependencies": { "@modelcontextprotocol/sdk": "^1.25.2" }, "optionalPeers": ["@modelcontextprotocol/sdk"] }, ""],
+
+    "@gradio/client": ["@gradio/client@2.5.1", "", { "dependencies": { "fetch-event-stream": "^0.1.5" } }, "sha512-dLpR0u5RcY5GOeqfjcFkVeLQgtd2AKQ5HGqykT8iAUmDxQcazxAX/OtqKD0VcrzKDQ2AvWkDmHu6V8gWx4uhew=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, ""],
 
@@ -655,6 +658,8 @@
     "fdir": ["fdir@6.5.0", "", { "peerDependencies": { "picomatch": "^3 || ^4" }, "optionalPeers": ["picomatch"] }, ""],
 
     "fetch-blob": ["fetch-blob@3.2.0", "", { "dependencies": { "node-domexception": "^1.0.0", "web-streams-polyfill": "^3.0.3" } }, ""],
+
+    "fetch-event-stream": ["fetch-event-stream@0.1.6", "", {}, "sha512-GREtJ5HNikdU2AXtZ6E/5bk+aslMU6ie5mPG6H9nvsdDkkHQ6m5lHwmmmDTOBexok9hApQ7EprsXCdmz9ZC68w=="],
 
     "fflate": ["fflate@0.8.3", "", {}, ""],
 

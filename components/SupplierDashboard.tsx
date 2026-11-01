@@ -290,7 +290,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ supplierId, onLog
                   <div className="bg-zinc-50 border border-zinc-100 p-4 rounded-xl text-sm font-bold text-zinc-950">{supplier.region}</div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Uplink Status</label>
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Connection Status</label>
                   <div className="flex items-center gap-3 bg-zinc-50 border border-zinc-100 p-4 rounded-xl">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                     <span className="text-sm font-bold text-zinc-950 uppercase tracking-widest">{supplier.status}</span>
@@ -308,8 +308,8 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ supplierId, onLog
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-between items-center border-b border-zinc-100 pb-6">
         <div className="space-y-1">
-          <h3 className="text-2xl font-serif italic text-zinc-950">Archival Silhouettes</h3>
-          <p className="text-[8px] text-zinc-400 font-black tracking-widest uppercase">Manage your supply chain inventory</p>
+          <h3 className="text-2xl font-serif italic text-zinc-950">Product Catalog</h3>
+          <p className="text-[8px] text-zinc-400 font-black tracking-widest uppercase">Manage your products and inventory</p>
         </div>
         <button 
           onClick={handleRegister}
@@ -377,8 +377,8 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ supplierId, onLog
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-between items-center border-b border-zinc-100 pb-6">
         <div className="space-y-1">
-          <h3 className="text-2xl font-serif italic text-zinc-950">Global Reduction Protocols</h3>
-          <p className="text-[8px] text-zinc-400 font-black tracking-widest uppercase">Initialize high-velocity liquidation events</p>
+          <h3 className="text-2xl font-serif italic text-zinc-950">Flash Sales & Discounts</h3>
+          <p className="text-[8px] text-zinc-400 font-black tracking-widest uppercase">Set up limited-time sale events</p>
         </div>
         <button 
           onClick={() => setIsAnomalyModalOpen(true)}
@@ -430,22 +430,22 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ supplierId, onLog
         {anomalies.length === 0 && (
            <div className="col-span-full py-32 text-center border border-dashed border-zinc-100 rounded-[3rem] space-y-6">
               <div className="text-6xl opacity-10">⚡</div>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-300 italic">No global reductions detected in current cycle.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-300 italic">No flash sales active right now.</p>
            </div>
         )}
       </div>
 
       {isAnomalyModalOpen && (
-        <div className="fixed inset-0 z-[400] bg-white/80 backdrop-blur-xl flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[400] bg-black/60 flex items-center justify-center p-6">
           <div className="bg-white border border-blue-600/30 w-full max-w-xl rounded-[3rem] p-12 space-y-8 animate-in zoom-in-95 duration-300 shadow-2xl">
             <div className="space-y-2">
-              <h3 className="text-3xl font-serif italic text-zinc-950">Anomaly_Config</h3>
-              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em]">Define Liquidation Parameters</p>
+              <h3 className="text-3xl font-serif italic text-zinc-950">Create Flash Sale</h3>
+              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em]">Set Discount Price and Duration</p>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Target Silhouette</label>
+                <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Select Product</label>
                 <select 
                   value={newAnomaly.productId}
                   onChange={e => {
@@ -467,7 +467,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ supplierId, onLog
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Anomaly Price (GH₵)</label>
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Sale Price (GH₵)</label>
                   <input 
                     type="number"
                     value={newAnomaly.discountedPrice}

@@ -111,7 +111,7 @@ const ContactPanel: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 md:py-20 space-y-16 pb-40 animate-in fade-in duration-700">
+    <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 sm:py-6 space-y-8 sm:space-y-10 pb-40 animate-in fade-in duration-700">
       <header className="space-y-4 text-center">
         <div className="inline-flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-zinc-200 shadow-sm mb-4">
           <div className="w-2 h-2 rounded-full bg-[#0F52BA] animate-pulse"></div>

@@ -3,8 +3,22 @@ import { db } from '../server.js';
 import { body, validationResult } from 'express-validator';
 import { authenticate, authenticateAny, AuthRequest, optionalAuth } from '../middleware/auth.js';
 import { TIER_BENEFITS } from '../tierBenefits.js';
+import { checkCircularReferral, getUserLedgerBlocks } from './referralBlockchain.js';
 
 const router = Router();
+
+const safeJsonParse = (val: any, fallback: any = []) => {
+  if (!val) return fallback;
+  if (typeof val !== 'string') return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    if (Array.isArray(fallback) && typeof val === 'string' && val.includes(',')) {
+      return val.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return fallback;
+  }
+};
 
 // --- AI USAGE TRACKING ---
 router.post('/ai-usage', authenticate, async (req: AuthRequest, res: any) => {
@@ -148,19 +162,22 @@ router.get('/wishlist/:userId', authenticate, async (req: AuthRequest, res: any)
     }
     const row = await db.get('SELECT wishlistedProductIds FROM user_history WHERE userId = ?', [req.params.userId]);
     if (row && row.wishlistedProductIds) {
-      const ids = JSON.parse(row.wishlistedProductIds);
+      const ids = safeJsonParse(row.wishlistedProductIds, []);
       if (ids.length > 0) {
         const placeholders = ids.map(() => '?').join(',');
         const products = await db.all(`SELECT * FROM products WHERE id IN (${placeholders})`, ids);
         res.json(products.map(p => ({
           ...p,
-          details: (() => { try { const d = JSON.parse(p.details); return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; } catch { return []; } })(),
-          tags: p.tags ? JSON.parse(p.tags) : [],
-          sizes: p.sizes ? JSON.parse(p.sizes) : [],
-          colors: p.colors ? JSON.parse(p.colors) : [],
-          colorVariants: p.colorVariants ? JSON.parse(p.colorVariants) : [],
-          priceRange: p.priceRange ? JSON.parse(p.priceRange) : null,
-          customizationFields: p.customizationFields ? JSON.parse(p.customizationFields) : []
+          details: (() => { 
+            const d = safeJsonParse(p.details, []); 
+            return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; 
+          })(),
+          tags: safeJsonParse(p.tags, []),
+          sizes: safeJsonParse(p.sizes, []),
+          colors: safeJsonParse(p.colors, []),
+          colorVariants: safeJsonParse(p.colorVariants, []),
+          priceRange: safeJsonParse(p.priceRange, null),
+          customizationFields: safeJsonParse(p.customizationFields, [])
         })));
         return;
       }
@@ -185,9 +202,9 @@ router.post('/wishlist', authenticate, [
   }
   try {
     const row = await db.get('SELECT wishlistedProductIds FROM user_history WHERE userId = ?', [userId]);
-    let ids = [];
+    let ids: string[] = [];
     if (row && row.wishlistedProductIds) {
-      ids = JSON.parse(row.wishlistedProductIds);
+      ids = safeJsonParse(row.wishlistedProductIds, []);
     }
     if (!ids.includes(productId)) {
       ids.push(productId);
@@ -210,7 +227,7 @@ router.delete('/wishlist/:userId/:productId', authenticate, async (req: AuthRequ
   try {
     const row = await db.get('SELECT wishlistedProductIds FROM user_history WHERE userId = ?', [userId]);
     if (row && row.wishlistedProductIds) {
-      let ids = JSON.parse(row.wishlistedProductIds);
+      let ids: string[] = safeJsonParse(row.wishlistedProductIds, []);
       ids = ids.filter((id: string) => id !== productId);
       await db.run(
         'UPDATE user_history SET `wishlistedProductIds` = ? WHERE `userId` = ?',
@@ -396,6 +413,19 @@ router.post('/cart/remove', authenticate, [
     res.json({ status: 'success' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to remove from cart' });
+  }
+});
+
+router.delete('/cart/:userId', authenticate, async (req: AuthRequest, res: any) => {
+  const { userId } = req.params;
+  if (req.user?.id !== userId && req.user?.role !== 'ADMIN') {
+    return res.status(403).json({ status: 'error', message: 'Unauthorized cart clearing' });
+  }
+  try {
+    await db.run('DELETE FROM cart_items WHERE userId = ?', [userId]);
+    res.json({ status: 'success' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to clear cart' });
   }
 });
 
@@ -656,7 +686,7 @@ router.get('/referrals/:userId', authenticate, async (req: AuthRequest, res: any
     if (req.user?.id !== req.params.userId && req.user?.role !== 'ADMIN') {
       return res.status(403).json({ status: 'error', message: 'Unauthorized referrals access' });
     }
-    const userId = req.params.userId;
+    const userId = String(req.params.userId);
     const user = await db.get('SELECT handle, credit, rep FROM users WHERE id = ?', [userId]);
     if (!user) {
       return res.status(404).json({ status: 'error', message: 'User not found' });
@@ -684,9 +714,18 @@ router.get('/referrals/:userId', authenticate, async (req: AuthRequest, res: any
     );
 
     // Calculate total earned
-    const totalEarnings = referredUsers
-      .filter((r: any) => r.status === 'COMPLETED' || r.status === 'ACTIVE')
-      .reduce((sum: number, r: any) => sum + r.rewardAmount, 0);
+    let totalEarnings = referredUsers
+      .filter((r: any) => r.status === 'COMPLETED' || r.status === 'ACTIVE' || r.status === 'completed')
+      .reduce((sum: number, r: any) => sum + (Number(r.rewardAmount) || 0), 0);
+
+    const ledger = await getUserLedgerBlocks(db, userId);
+    const ledgerEarned = ledger
+      .filter((b: any) => b.referrerId === userId)
+      .reduce((sum: number, b: any) => sum + (Number(b.rewardAmount) || 0), 0);
+
+    if (ledgerEarned > 0) {
+      totalEarnings = Math.max(totalEarnings, ledgerEarned);
+    }
 
     res.json({
       status: 'success',
@@ -695,6 +734,9 @@ router.get('/referrals/:userId', authenticate, async (req: AuthRequest, res: any
         referredUsers,
         referrer: referrer ? { id: referrer.referrerId, handle: referrer.handle } : null,
         totalEarnings,
+        lifetimeCommissionRate: '10%',
+        roundingRule: 'nearest whole number',
+        ledger,
         repGain: referredUsers.length * 200 // Give 200 REP per active referral
       }
     });
@@ -721,25 +763,24 @@ router.post('/referrals/bind', authenticate, async (req: AuthRequest, res: any) 
     }
 
     const selfCode = `KRAZE_${currUser.handle.toUpperCase()}`;
-    if (cleanCode === selfCode) {
+    if (cleanCode === selfCode || cleanCode === currUser.handle.toUpperCase()) {
       return res.status(400).json({ status: 'error', message: 'You cannot refer yourself.' });
     }
 
     // Check if already referred by someone
-    const existingReferral = await db.get('SELECT id FROM referrals WHERE referredId = ?', [userId]);
+    const existingReferral = await db.get('SELECT id FROM referrals WHERE (referredId = ? OR refereeId = ?)', [userId, userId]);
     if (existingReferral) {
       return res.status(400).json({ status: 'error', message: 'You have already applied a referral code.' });
     }
 
-    // Find the referrer by matching their code
-    let referrerHandle = '';
-    if (cleanCode.startsWith('KRAZE_')) {
-      referrerHandle = cleanCode.substring(6);
-    } else {
-      referrerHandle = cleanCode;
-    }
+    // Find the referrer by matching their code or handle
+    let referrerHandle = cleanCode.startsWith('KRAZE_') ? cleanCode.substring(6) : cleanCode;
 
-    const referrer = await db.get('SELECT id, credit, rep FROM users WHERE UPPER(handle) = ?', [referrerHandle]);
+    const referrer = await db.get(
+      'SELECT id, handle, credit, rep FROM users WHERE UPPER(referralCode) = ? OR UPPER(handle) = ?',
+      [cleanCode, referrerHandle]
+    );
+
     if (!referrer) {
       return res.status(404).json({ status: 'error', message: 'Invalid referral code or handle.' });
     }
@@ -748,32 +789,44 @@ router.post('/referrals/bind', authenticate, async (req: AuthRequest, res: any) 
       return res.status(400).json({ status: 'error', message: 'You cannot refer yourself.' });
     }
 
+    // Circular referral check: "you cant use the referal code of some one you referred"
+    const circularCheck = await checkCircularReferral(db, userId, referrer.id);
+    if (!circularCheck.isAllowed) {
+      return res.status(400).json({
+        status: 'error',
+        message: circularCheck.reason || 'You cannot use the referral code of someone you referred.'
+      });
+    }
+
     // Insert new referral record
     const referralId = `ref_${Date.now()}`;
-    const rewardForReferrer = 0.0; // Inviter gets 10% of total cart on first purchase instead of GH₵10 upfront
-    const rewardForReferred = 5.0; // GH₵5 reward for the referred user as sign-up/link bonus!
+    const rewardForReferrer = 0.0;
+    const rewardForReferred = 5.0; // GH₵5 reward for the referred user as sign-up/link bonus
 
     await db.run(
-      'INSERT INTO referrals (id, referrerId, referredId, code, status, rewardAmount, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [referralId, referrer.id, userId, cleanCode, 'COMPLETED', rewardForReferrer, new Date().toISOString()]
+      'INSERT INTO referrals (id, referrerId, refereeId, referredId, code, status, rewardAmount, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [referralId, referrer.id, userId, userId, cleanCode, 'COMPLETED', rewardForReferrer, new Date().toISOString()]
     );
 
-    // Update referrer and referred users' store credits & rep!
+    // Update referee's referredBy column
+    await db.run('UPDATE users SET referredBy = ? WHERE id = ?', [referrer.id, userId]);
+
+    // Update referrer and referred users' store credits & rep
     const newReferrerCredit = (referrer.credit || 0) + rewardForReferrer;
-    const newReferrerRep = (referrer.rep || 0) + 200; // Still give +200 REP on bind
+    const newReferrerRep = (referrer.rep || 0) + 200; // +200 REP on bind
     await db.run('UPDATE users SET credit = ?, rep = ? WHERE id = ?', [newReferrerCredit, newReferrerRep, referrer.id]);
 
     const newReferredCredit = (currUser.credit || 0) + rewardForReferred;
     const newReferredRep = (currUser.rep || 0) + 50;
     await db.run('UPDATE users SET credit = ?, rep = ? WHERE id = ?', [newReferredCredit, newReferredRep, userId]);
 
-    // Update stats store credit if needed
+    // Update stats store credit
     await db.run('UPDATE user_stats SET storeCredit = ? WHERE userId = ?', [newReferrerCredit, referrer.id]);
     await db.run('UPDATE user_stats SET storeCredit = ? WHERE userId = ?', [newReferredCredit, userId]);
 
     res.json({
       status: 'success',
-      message: `Referral applied: You received GH₵${rewardForReferred} store credit & +50 REP. Referrer received +200 REP and will receive 10% of your first purchase as credit.`,
+      message: `Referral applied: You received GH₵${rewardForReferred} store credit & +50 REP. Your referrer will receive 10% of every product purchase you make for life (rounded to nearest whole number, recorded on the blockchain ledger).`,
       data: {
         referrerHandle: referrer.handle
       }
@@ -811,6 +864,27 @@ router.post('/:userId/outfits', authenticate, async (req: AuthRequest, res: any)
     res.status(201).json({ status: 'success' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to save outfit' });
+  }
+});
+
+// AI Usage tracker
+router.post('/ai-usage', authenticate, async (req: AuthRequest, res: any) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+    const { type } = req.body;
+    if (type === 'tryon') {
+      await db.run('UPDATE user_stats SET aiTryOnsUsedToday = COALESCE(aiTryOnsUsedToday, 0) + 1 WHERE userId = ?', [userId]);
+    } else {
+      await db.run('UPDATE user_stats SET neuralStylistUsedToday = COALESCE(neuralStylistUsedToday, 0) + 1 WHERE userId = ?', [userId]);
+    }
+    const updated = await db.get('SELECT aiTryOnsUsedToday, neuralStylistUsedToday FROM user_stats WHERE userId = ?', [userId]);
+    res.json({ status: 'success', data: updated });
+  } catch (error) {
+    console.error('Error in /user/ai-usage:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to update usage' });
   }
 });
 

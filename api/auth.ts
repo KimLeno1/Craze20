@@ -53,7 +53,8 @@ const generateAccessTokens = (user: any) => {
       id: user.id, 
       email: user.email || user.contactEmail, 
       role: user.role,
-      handle: user.handle || user.name || user.handle // ensuring handle is captured
+      handle: user.handle || user.name || user.handle,
+      jti: crypto.randomUUID()
     },
     JWT_SECRET,
     { expiresIn: ACCESS_TOKEN_EXPIRY }
@@ -62,7 +63,7 @@ const generateAccessTokens = (user: any) => {
 
 const generateRefreshToken = (user: any) => {
   return jwt.sign(
-    { id: user.id, role: user.role },
+    { id: user.id, role: user.role, jti: crypto.randomUUID() },
     REFRESH_SECRET,
     { expiresIn: REFRESH_TOKEN_EXPIRY }
   );
@@ -77,29 +78,43 @@ router.post('/login', [
     return res.status(400).json({ success: false, errors: errors.array() });
   }
   const { identifier, email, password, role } = req.body;
-  const loginIdentifier = identifier || email;
+  const loginIdentifier = String(identifier || email || '').trim();
+  const cleanId = loginIdentifier.toLowerCase();
   
   try {
     let user;
     if (role === 'SUPPLIER') {
-      user = await db.get('SELECT * FROM suppliers WHERE (name = ? OR contactEmail = ?)', [loginIdentifier, loginIdentifier]);
+      user = await db.get('SELECT * FROM suppliers WHERE (LOWER(TRIM(name)) = ? OR LOWER(TRIM(contactEmail)) = ?)', [cleanId, cleanId]);
       if (user) user.role = 'SUPPLIER';
     } else if (role === 'ADMIN') {
-      user = await db.get('SELECT * FROM admins WHERE (email = ? OR handle = ?)', [loginIdentifier, loginIdentifier]);
+      user = await db.get('SELECT * FROM admins WHERE (LOWER(TRIM(email)) = ? OR LOWER(TRIM(handle)) = ?)', [cleanId, cleanId]);
       if (user) user.role = 'ADMIN';
     } else {
-      user = await db.get('SELECT * FROM users WHERE (email = ? OR handle = ?)', [loginIdentifier, loginIdentifier]);
+      user = await db.get('SELECT * FROM users WHERE (LOWER(TRIM(email)) = ? OR LOWER(TRIM(handle)) = ?)', [cleanId, cleanId]);
       if (user && !user.role) user.role = 'USER';
     }
     
-    if (user && await bcrypt.compare(password, user.password || '')) {
+    let isPasswordValid = false;
+    if (user && user.password) {
+      if (user.password === password) {
+        isPasswordValid = true;
+      } else {
+        try {
+          isPasswordValid = await bcrypt.compare(password, user.password);
+        } catch {
+          isPasswordValid = false;
+        }
+      }
+    }
+    
+    if (user && isPasswordValid) {
       const accessToken = generateAccessTokens(user);
       const refreshToken = generateRefreshToken(user);
       
       // Store refresh token
       await db.run(
-        'INSERT INTO refresh_tokens (id, userId, token, expiresAt, role, userAgent, ip) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [crypto.randomUUID(), user.id, refreshToken, Date.now() + REFRESH_TOKEN_MAX_AGE, user.role, req.get('User-Agent'), req.ip]
+        'INSERT OR REPLACE INTO refresh_tokens (id, userId, token, expiresAt, role, userAgent, ip) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [crypto.randomUUID(), user.id, refreshToken, Date.now() + REFRESH_TOKEN_MAX_AGE, user.role, req.get('User-Agent') || null, req.ip || null]
       );
       
       res.cookie(getCookieName(user.role), accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 });
@@ -114,9 +129,9 @@ router.post('/login', [
     } else {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Login failed' });
+    res.status(500).json({ success: false, message: 'Login failed', error: error?.message });
   }
 });
 

@@ -143,13 +143,13 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
   const handleDelete = async () => {
     if (!product?.id) return;
     
-    const confirmed = window.confirm('CRITICAL_PROTOCOL: Are you absolutely certain you wish to terminate this silhouette entry from the neural archive? This action is irreversible.');
+    const confirmed = window.confirm('Are you sure you want to delete this product? This action cannot be undone.');
     
     if (confirmed) {
       setIsSaving(true);
       try {
         await databaseService.deleteProduct(product.id);
-        toast.success('Silhouette entry terminated');
+        toast.success('Product deleted successfully');
         onCancel(); // Close editor and refresh list
       } catch (error) {
         console.error('Termination failed:', error);
@@ -338,14 +338,14 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
   };
 
   return (
-    <div className="fixed inset-0 z-[400] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-[400] bg-black/50 flex items-center justify-center p-6 overflow-y-auto">
       <div className="bg-zinc-950 border border-[#f59e0b]/20 w-full max-w-4xl rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.05)] flex flex-col max-h-[90vh]">
         <header className="p-8 border-b border-white/5 flex justify-between items-center shrink-0">
           <div className="space-y-1">
             <h2 className="text-2xl font-serif italic text-white">
-              {product ? 'Modify_Uplink_Data' : 'Register_New_Silhouette'}
+              {product ? 'Edit Product' : 'Add New Product'}
             </h2>
-            <p className="text-[9px] font-black text-[#f59e0b] uppercase tracking-[0.4em]">Node Supply Ledger</p>
+            <p className="text-[9px] font-black text-[#f59e0b] uppercase tracking-[0.4em]">Supplier Inventory</p>
           </div>
           <button 
             onClick={onCancel}
@@ -358,23 +358,23 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 md:p-12 space-y-10 scrollbar-hide font-mono">
           <div className="grid md:grid-cols-2 gap-10">
             <div className="space-y-6">
-              <div className="text-[10px] font-black text-[#f59e0b] uppercase tracking-widest border-l-2 border-[#f59e0b] pl-3">Logistics Meta</div>
+              <div className="text-[10px] font-black text-[#f59e0b] uppercase tracking-widest border-l-2 border-[#f59e0b] pl-3">Product Information</div>
               
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Product Designation</label>
+                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Product Name</label>
                 <input 
                   type="text"
                   required
                   value={formData.name || ''}
                   onChange={e => setFormData({...formData, name: e.target.value})}
                   className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-xs text-[#f59e0b] focus:border-[#f59e0b] transition-all outline-none"
-                  placeholder="ITEM NAME (STRING)"
+                  placeholder="e.g. Classic Denim Jacket"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Available Price (GH₵)</label>
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Price (GH₵)</label>
                   <input 
                     type="number"
                     required
@@ -394,7 +394,7 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Logistics Yield (Shipping GH₵)</label>
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Shipping Fee (GH₵)</label>
                   <input 
                     type="number"
                     required
@@ -418,7 +418,7 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Inventory Depth</label>
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Stock Count</label>
                   <input 
                     type="number"
                     required
@@ -428,13 +428,13 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Sector (Category)</label>
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Category</label>
                   <select 
                     value={formData.category}
                     onChange={e => setFormData({...formData, category: e.target.value})}
                     className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-xs text-[#f59e0b] focus:border-[#f59e0b] outline-none appearance-none"
                   >
-                    <option value="">Select Sector</option>
+                    <option value="">Select Category</option>
                     {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                   </select>
                 </div>
@@ -867,7 +867,7 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
                     onChange={e => addTag(e.target.value)}
                     className="flex-1 bg-black border border-white/10 rounded-2xl px-6 py-4 text-[10px] text-white focus:border-[#f59e0b] outline-none"
                   >
-                    <option value="">SELECT_ADMIN_TAG...</option>
+                    <option value="">Select Tag...</option>
                     {adminTags.filter(t => !(formData.tags || []).includes(t.name)).map(t => (
                       <option key={t.id} value={t.name}>{t.name}</option>
                     ))}
@@ -892,13 +892,13 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
         <footer className="p-8 border-t border-white/5 flex flex-wrap gap-4 shrink-0">
           {product?.id && (
             <button 
-              type="button"
+              type="button" 
               onClick={handleDelete}
               disabled={isSaving}
               className="flex-1 py-5 bg-red-500/10 text-red-500 border border-red-500/20 rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3"
             >
               <Trash2 className="w-4 h-4" />
-              <span>Terminate_Entry</span>
+              <span>Delete Product</span>
             </button>
           )}
           <button 
@@ -907,7 +907,7 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
             disabled={isSaving}
             className="flex-1 py-5 bg-zinc-900 text-zinc-500 rounded-3xl font-black uppercase tracking-widest text-[10px] hover:text-white transition-all"
           >
-            Abort_Sync
+            Cancel
           </button>
           <button 
             type="submit"
@@ -918,9 +918,9 @@ const SupplierProductEditor: React.FC<SupplierProductEditorProps> = ({ product, 
             {isSaving ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Authorizing...</span>
+                <span>Saving...</span>
               </>
-            ) : 'Authorize_Uplink'}
+            ) : 'Save Product'}
           </button>
         </footer>
       </div>

@@ -149,7 +149,7 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
   return (
     <div className="min-h-screen bg-white text-black pb-32 animate-in fade-in duration-500">
       {/* Top Banner and Navigation */}
-      <header className="py-12 md:py-20 px-4 sm:px-6 md:px-20 border-b border-black/5 bg-gradient-to-b from-[#0F52BA]/5 to-transparent">
+      <header className="py-4 sm:py-6 md:py-8 px-4 sm:px-6 md:px-20 border-b border-black/5 bg-gradient-to-b from-[#0F52BA]/5 to-transparent">
         <div className="max-w-7xl mx-auto space-y-6">
           <button 
             onClick={() => onNavigate(ViewState.LOBBY)}
@@ -186,7 +186,7 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-20 py-12 space-y-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-20 py-6 sm:py-8 space-y-12">
         {/* Section 1: Customizable Base items */}
         <section className="space-y-6">
           <div className="flex justify-between items-baseline border-b border-black/5 pb-4">
@@ -197,10 +197,10 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
           </div>
 
           {customizableProducts.length === 0 ? (
-            <div className="text-center py-16 bg-zinc-950/40 border border-black/5 rounded-3xl p-10">
-              <HelpCircle className="w-10 h-10 mx-auto text-zinc-600 mb-3" />
+            <div className="text-center py-16 bg-zinc-50 border border-zinc-200 rounded-3xl p-10">
+              <HelpCircle className="w-10 h-10 mx-auto text-zinc-400 mb-3" />
               <p className="text-sm font-serif italic text-zinc-600">No customizable clothes found.</p>
-              <p className="text-[9px] text-zinc-500 font-black uppercase tracking-widest mt-1">Use the "Request Custom Item" button to ask for a custom item from scratch!</p>
+              <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mt-1">Use the "Request Custom Item" button to ask for a custom item from scratch!</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -208,23 +208,23 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
                 <div 
                   key={product.id}
                   onClick={() => onProductClick(product)}
-                  className="group bg-zinc-950/60 border border-black/5 rounded-3xl overflow-hidden cursor-pointer hover:border-[#0F52BA]/40 transition-all duration-500 shadow-md flex flex-col justify-between"
+                  className="group bg-white border border-zinc-200 rounded-3xl overflow-hidden cursor-pointer hover:border-[#0F52BA]/50 transition-all duration-300 shadow-sm hover:shadow-md flex flex-col justify-between"
                 >
-                  <div className="relative aspect-[3/4] overflow-hidden bg-zinc-900">
+                  <div className="relative aspect-[3/4] overflow-hidden bg-zinc-100">
                     <img 
                       src={product.image} 
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute top-4 right-4 px-2 py-1 bg-black/60 backdrop-blur-md rounded-full text-[8px] font-black text-[#C5A880] uppercase tracking-widest border border-[#C5A880]/30">
+                    <div className="absolute top-4 right-4 px-2.5 py-1 bg-white/95 rounded-full text-[8px] font-black text-[#0F52BA] uppercase tracking-widest border border-zinc-200 shadow-sm">
                       Custom Ready
                     </div>
                   </div>
                   <div className="p-5 space-y-2">
-                    <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{product.category}</div>
-                    <h3 className="text-xs font-bold text-black group-hover:text-[#0F52BA] transition-colors">{product.name}</h3>
+                    <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{product.category}</div>
+                    <h3 className="text-xs font-bold text-zinc-900 group-hover:text-[#0F52BA] transition-colors">{product.name}</h3>
                     <div className="flex justify-between items-center pt-2">
-                      <span className="text-xs font-mono font-black text-black">GHS {product.price.toFixed(2)}</span>
+                      <span className="text-xs font-mono font-black text-zinc-900">GHS {product.price.toFixed(2)}</span>
                       <span className="text-[8px] font-black uppercase tracking-widest text-[#0F52BA] group-hover:translate-x-1 transition-transform flex items-center gap-1">
                         Tailor It <ChevronRight className="w-3.5 h-3.5" />
                       </span>
@@ -247,27 +247,27 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
             {isLoading ? (
               <div className="grid gap-4">
                 {[...Array(2)].map((_, i) => (
-                  <div key={i} className="animate-pulse bg-zinc-950 p-6 rounded-3xl border border-black/5 h-32"></div>
+                  <div key={i} className="animate-pulse bg-zinc-50 p-6 rounded-3xl border border-zinc-200 h-32"></div>
                 ))}
               </div>
             ) : requests.length === 0 ? (
-              <div className="text-center py-16 bg-zinc-950/40 border border-black/5 rounded-3xl p-10 text-zinc-500">
-                <Clock className="w-10 h-10 mx-auto text-zinc-600 mb-3" />
-                <p className="text-sm font-serif italic">Your request board is empty.</p>
-                <p className="text-[9px] font-black uppercase tracking-widest mt-1">Any custom requests you make will appear here.</p>
+              <div className="text-center py-16 bg-zinc-50 border border-zinc-200 rounded-3xl p-10 text-zinc-500">
+                <Clock className="w-10 h-10 mx-auto text-zinc-400 mb-3" />
+                <p className="text-sm font-serif italic text-zinc-600">Your request board is empty.</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-1">Any custom requests you make will appear here.</p>
               </div>
             ) : (
               <div className="grid gap-6">
                 {requests.map(req => (
                   <div 
                     key={req.id}
-                    className="bg-zinc-950/60 border border-black/5 hover:border-black/10 p-6 rounded-3xl flex flex-col md:flex-row gap-6 justify-between transition-all"
+                    className="bg-white border border-zinc-200 hover:border-zinc-300 p-6 rounded-3xl flex flex-col md:flex-row gap-6 justify-between transition-all shadow-xs"
                   >
                     <div className="flex-1 space-y-4">
                       {/* Header metadata */}
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="text-[9px] font-mono text-zinc-500">{new Date(req.timestamp).toLocaleDateString()}</span>
-                        <span className="text-[8px] bg-black/5 px-2 py-0.5 rounded text-zinc-600 font-black uppercase tracking-widest">{req.category}</span>
+                        <span className="text-[8px] bg-zinc-100 px-2 py-0.5 rounded text-zinc-600 font-black uppercase tracking-widest">{req.category}</span>
                         {req.budget > 0 && (
                           <span className="text-[9px] font-mono font-black text-[#0F52BA]">Target Budget: GHS {req.budget.toFixed(2)}</span>
                         )}
@@ -279,13 +279,13 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
 
                       {/* Request Info */}
                       <div>
-                        <h4 className="text-sm font-bold text-black">{req.itemName}</h4>
+                        <h4 className="text-sm font-bold text-zinc-900">{req.itemName}</h4>
                         <p className="text-xs text-zinc-600 mt-1 font-mono whitespace-pre-wrap leading-relaxed">{req.description}</p>
                       </div>
 
                       {/* Admin Notes */}
                       {req.adminNotes && (
-                        <div className="border-t border-black/5 pt-3 mt-3">
+                        <div className="border-t border-zinc-100 pt-3 mt-3">
                           <div className="text-[8px] font-black uppercase tracking-widest text-[#0F52BA] mb-1">Tailor / Workshop Response</div>
                           <p className="text-xs italic text-zinc-700 pl-3 border-l-2 border-[#0F52BA]/40">{req.adminNotes}</p>
                         </div>
@@ -294,7 +294,7 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
 
                     {/* Image preview if exists */}
                     {req.referenceImage && (
-                      <div className="w-full md:w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-black/10 bg-zinc-900">
+                      <div className="w-full md:w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100">
                         <img 
                           src={req.referenceImage} 
                           alt="Bespoke Reference"
@@ -316,16 +316,16 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
 
       {/* Form Dialog Modal */}
       {showFormModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-zinc-950 border border-black/10 w-full max-w-lg rounded-[2.5rem] shadow-2xl p-6 md:p-8 space-y-6 overflow-y-auto max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-300">
+          <div className="bg-white border border-zinc-200 w-full max-w-lg rounded-[2.5rem] shadow-2xl p-6 md:p-8 space-y-6 overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <h3 className="text-xl font-serif italic text-black">Custom Clothes Request Form</h3>
+                <h3 className="text-xl font-serif italic text-zinc-900">Custom Clothes Request Form</h3>
                 <p className="text-[8px] text-zinc-500 font-black tracking-widest uppercase">Tell us about the item you couldn't find or the design you want us to make</p>
               </div>
               <button 
                 onClick={() => setShowFormModal(false)}
-                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-zinc-600 hover:text-black flex items-center justify-center transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 flex items-center justify-center transition-all cursor-pointer"
               >
                 ✕
               </button>
@@ -333,66 +333,66 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
 
             {successMessage ? (
               <div className="py-8 text-center space-y-4 animate-in zoom-in-95 duration-300">
-                <div className="w-16 h-16 bg-green-500/10 text-green-400 border border-green-500/30 rounded-full flex items-center justify-center mx-auto text-2xl">
+                <div className="w-16 h-16 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full flex items-center justify-center mx-auto text-2xl">
                   ✓
                 </div>
-                <h4 className="text-md font-bold text-black">Request Submitted!</h4>
+                <h4 className="text-md font-bold text-zinc-900">Request Submitted!</h4>
                 <p className="text-xs text-zinc-600 max-w-sm mx-auto leading-relaxed">{successMessage}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid gap-4">
                   <div className="space-y-1">
-                    <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest pl-1">What is the item name? *</label>
+                    <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest pl-1">What is the item name? *</label>
                     <input 
                       type="text" 
                       required
                       placeholder="e.g. Leather jacket or tailored evening dress" 
                       value={itemName}
                       onChange={e => setItemName(e.target.value)}
-                      className="w-full bg-zinc-900 border border-black/5 px-4 py-3 text-xs text-black focus:border-[#0F52BA] outline-none rounded-xl"
+                      className="w-full bg-zinc-50 border border-zinc-200 px-4 py-3 text-xs text-zinc-900 focus:border-[#0F52BA] outline-none rounded-xl"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest pl-1">Category *</label>
+                      <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest pl-1">Category *</label>
                       <input 
                         type="text" 
                         required
                         placeholder="e.g. Jacket, Tops, Dress" 
                         value={category}
                         onChange={e => setCategory(e.target.value)}
-                        className="w-full bg-zinc-900 border border-black/5 px-4 py-3 text-xs text-black focus:border-[#0F52BA] outline-none rounded-xl"
+                        className="w-full bg-zinc-50 border border-zinc-200 px-4 py-3 text-xs text-zinc-900 focus:border-[#0F52BA] outline-none rounded-xl"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest pl-1">Target Budget (GHS)</label>
+                      <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest pl-1">Target Budget (GHS)</label>
                       <input 
                         type="number" 
                         placeholder="e.g. 750" 
                         value={budget}
                         onChange={e => setBudget(e.target.value)}
-                        className="w-full bg-zinc-900 border border-black/5 px-4 py-3 text-xs text-black focus:border-[#0F52BA] outline-none rounded-xl"
+                        className="w-full bg-zinc-50 border border-zinc-200 px-4 py-3 text-xs text-zinc-900 focus:border-[#0F52BA] outline-none rounded-xl"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest pl-1">Your Phone Number *</label>
+                    <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest pl-1">Your Phone Number *</label>
                     <input 
                       type="tel" 
                       required
                       placeholder="e.g. +233 24 123 4567" 
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full bg-zinc-900 border border-black/5 px-4 py-3 text-xs text-black focus:border-[#0F52BA] outline-none rounded-xl"
+                      className="w-full bg-zinc-50 border border-zinc-200 px-4 py-3 text-xs text-zinc-900 focus:border-[#0F52BA] outline-none rounded-xl"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest pl-1">Upload Reference Picture (Optional)</label>
+                    <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest pl-1">Upload Reference Picture (Optional)</label>
                     <div className="flex flex-col gap-2">
                       <input 
                         type="file" 
@@ -417,17 +417,17 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
                             setIsUploading(false);
                           }
                         }}
-                        className="w-full bg-zinc-900 border border-black/5 px-4 py-3 text-xs text-zinc-600 focus:border-[#0F52BA] outline-none rounded-xl file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-[#0F52BA]/10 file:text-[#0F52BA] hover:file:bg-[#0F52BA]/20"
+                        className="w-full bg-zinc-50 border border-zinc-200 px-4 py-3 text-xs text-zinc-700 focus:border-[#0F52BA] outline-none rounded-xl file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-[#0F52BA]/10 file:text-[#0F52BA] hover:file:bg-[#0F52BA]/20"
                       />
-                      {isUploading && <p className="text-[10px] text-zinc-600 animate-pulse">Uploading your picture...</p>}
-                      {uploadError && <p className="text-[10px] text-red-400">{uploadError}</p>}
+                      {isUploading && <p className="text-[10px] text-zinc-500 animate-pulse">Uploading your picture...</p>}
+                      {uploadError && <p className="text-[10px] text-red-500">{uploadError}</p>}
                       {referenceImage && (
-                        <div className="mt-2 relative w-20 h-20 rounded-xl overflow-hidden border border-black/10 bg-zinc-900">
+                        <div className="mt-2 relative w-20 h-20 rounded-xl overflow-hidden border border-zinc-200 bg-zinc-100">
                           <img src={referenceImage} alt="Uploaded reference" className="w-full h-full object-cover" />
                           <button 
                             type="button" 
                             onClick={() => setReferenceImage('')}
-                            className="absolute top-1 right-1 bg-black/60 hover:bg-black/95 text-black rounded-full w-5 h-5 flex items-center justify-center text-[10px]"
+                            className="absolute top-1 right-1 bg-black/60 hover:bg-black/90 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]"
                             title="Remove picture"
                           >
                             ✕
@@ -438,14 +438,14 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest pl-1">Describe your design and size *</label>
+                    <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest pl-1">Describe your design and size *</label>
                     <textarea 
                       required
                       rows={4}
                       placeholder="Please tell us the style, material, colors, and your sizes or measurements." 
                       value={description}
                       onChange={e => setDescription(e.target.value)}
-                      className="w-full bg-zinc-900 border border-black/5 p-4 text-xs text-black focus:border-[#0F52BA] outline-none rounded-xl font-mono leading-relaxed"
+                      className="w-full bg-zinc-50 border border-zinc-200 p-4 text-xs text-zinc-900 focus:border-[#0F52BA] outline-none rounded-xl font-mono leading-relaxed"
                     />
                   </div>
                 </div>
@@ -454,7 +454,7 @@ const CustomRequestsView: React.FC<CustomRequestsViewProps> = ({
                   <button 
                     type="button" 
                     onClick={() => setShowFormModal(false)}
-                    className="px-5 py-2.5 bg-zinc-900 border border-black/5 text-zinc-600 hover:text-black hover:bg-zinc-800 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer"
+                    className="px-5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer"
                   >
                     Cancel
                   </button>

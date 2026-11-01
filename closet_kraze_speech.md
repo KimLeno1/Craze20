@@ -9,7 +9,7 @@ Ladies and gentlemen, disruptors, and style architects.
 
 Look around the current eCommerce landscape. What do you see? You see endless rows of commodity items, dull grids of clothing, static virtual checkout lines, and mindless "Add to Cart" actions that feel about as exciting as filling out a spreadsheet. The magic is dead. The desire has been normalized.
 
-We didn't build **Closet Kraze** to be another web store. We built it to be a high-conversion, scarce, gamified fashion ecosystem. Because in fashion, **emotion precedes logic**. If you are trying to sell a garment based purely on the cost of cotton and polyester, you’ve already lost. We sell status. We sell velocity. We sell the unmatched dopamine of being early—and lucky.
+We didn't build **Closet Kraze** to be another web store. We built it to be a high-conversion, scarce, curated fashion and style ecosystem. Because in fashion, **emotion precedes logic**. If you are trying to sell a garment based purely on the cost of cotton and polyester, you’ve already lost. We sell status. We sell velocity. We sell the unmatched dopamine of being early—and lucky.
 
 ---
 

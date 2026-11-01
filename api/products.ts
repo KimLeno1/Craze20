@@ -6,6 +6,19 @@ import { cacheGet, cacheSet, cacheInvalidatePattern } from '../lib/cache.js';
 
 const router = Router();
 
+const safeJsonParse = (val: any, fallback: any = []) => {
+  if (!val) return fallback;
+  if (typeof val !== 'string') return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    if (Array.isArray(fallback) && typeof val === 'string' && val.includes(',')) {
+      return val.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return fallback;
+  }
+};
+
 const generateSlug = (name: string): string => {
   return (name || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 };
@@ -21,16 +34,16 @@ router.get('/personalized/:userId', authenticate, async (req: AuthRequest, res: 
     const prefs = await db.get('SELECT * FROM user_preferences WHERE userId = ?', [userId]);
     const stats = await db.get('SELECT brandSubscriptions, tagSubscriptions FROM user_stats WHERE userId = ?', [userId]);
     
-    const preferredCategories = prefs && prefs.preferredCategories ? JSON.parse(prefs.preferredCategories) : [];
-    const brandSubs = stats && stats.brandSubscriptions ? JSON.parse(stats.brandSubscriptions) : [];
-    const tagSubs = stats && stats.tagSubscriptions ? JSON.parse(stats.tagSubscriptions) : [];
+    const preferredCategories = prefs && prefs.preferredCategories ? safeJsonParse(prefs.preferredCategories, []) : [];
+    const brandSubs = stats && stats.brandSubscriptions ? safeJsonParse(stats.brandSubscriptions, []) : [];
+    const tagSubs = stats && stats.tagSubscriptions ? safeJsonParse(stats.tagSubscriptions, []) : [];
     
     const allProducts = await db.all('SELECT * FROM products');
     
     const personalized = allProducts.filter(p => {
-      const pTags = p.tags ? JSON.parse(p.tags) : [];
-      return preferredCategories.includes(p.category) || 
-             brandSubs.includes(p.brand) || 
+      const pTags = safeJsonParse(p.tags, []);
+      return (p.category && preferredCategories.includes(p.category)) || 
+             (p.brand && brandSubs.includes(p.brand)) || 
              pTags.some((t: string) => tagSubs.includes(t));
     });
     
@@ -38,14 +51,17 @@ router.get('/personalized/:userId', authenticate, async (req: AuthRequest, res: 
     
     const result = [...personalized, ...others].map(row => ({
       ...row,
-      details: (() => { try { const d = JSON.parse(row.details); return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; } catch { return []; } })(),
-      tags: row.tags ? JSON.parse(row.tags) : [],
-      sizes: row.sizes ? JSON.parse(row.sizes) : [],
-      colors: row.colors ? JSON.parse(row.colors) : [],
-      colorVariants: row.colorVariants ? JSON.parse(row.colorVariants) : [],
-      images: row.images ? JSON.parse(row.images) : [row.image].filter(Boolean),
-      priceRange: row.priceRange ? JSON.parse(row.priceRange) : null,
-      customizationFields: row.customizationFields ? JSON.parse(row.customizationFields) : []
+      details: (() => { 
+        const d = safeJsonParse(row.details, []); 
+        return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; 
+      })(),
+      tags: safeJsonParse(row.tags, []),
+      sizes: safeJsonParse(row.sizes, []),
+      colors: safeJsonParse(row.colors, []),
+      colorVariants: safeJsonParse(row.colorVariants, []),
+      images: safeJsonParse(row.images, [row.image].filter(Boolean)),
+      priceRange: safeJsonParse(row.priceRange, null),
+      customizationFields: safeJsonParse(row.customizationFields, [])
     }));
     
     res.json(result);
@@ -115,6 +131,8 @@ router.get('/', async (req, res) => {
       orderBy = 'ORDER BY price DESC';
     } else if (sort === 'hype') {
       orderBy = 'ORDER BY isHallOfFame DESC, rating DESC, createdAt DESC';
+    } else if (sort === 'random' || req.query.random === 'true') {
+      orderBy = 'ORDER BY RANDOM()';
     }
 
     let query = `SELECT * FROM products ${whereClause} ${orderBy}`;
@@ -131,8 +149,8 @@ router.get('/', async (req, res) => {
       price: row.price,
       originalPrice: row.originalPrice || row.price,
       shippingFee: row.shippingFee || 0,
-      image: row.image || (row.images ? (JSON.parse(row.images)[0] || null) : null),
-      images: row.images ? JSON.parse(row.images) : [row.image].filter(Boolean),
+      image: row.image || (row.images ? (safeJsonParse(row.images, [])[0] || null) : null),
+      images: safeJsonParse(row.images, [row.image].filter(Boolean)),
       category: row.category || null,
       categoryId: row.categoryId || null,
       gender: row.gender || 'UNISEX',
@@ -141,8 +159,8 @@ router.get('/', async (req, res) => {
       isHallOfFame: Boolean(row.isHallOfFame),
       isFamous: Boolean(row.isHallOfFame),
       brand: row.brand || null,
-      tags: row.tags ? JSON.parse(row.tags) : [],
-      badges: row.badges ? JSON.parse(row.badges) : [],
+      tags: safeJsonParse(row.tags, []),
+      badges: safeJsonParse(row.badges, []),
       offeredDiscount: row.offeredDiscount || 0,
       slug: row.slug || generateSlug(row.name),
       supplierId: row.supplierId || null,
@@ -405,14 +423,17 @@ router.get('/hall-of-fame', async (req, res) => {
     const rows = await db.all('SELECT * FROM products WHERE isHallOfFame = 1');
     const products = rows.map(row => ({
       ...row,
-      details: (() => { try { const d = JSON.parse(row.details); return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; } catch { return []; } })(),
-      tags: row.tags ? JSON.parse(row.tags) : [],
-      sizes: row.sizes ? JSON.parse(row.sizes) : [],
-      colors: row.colors ? JSON.parse(row.colors) : [],
-      colorVariants: row.colorVariants ? JSON.parse(row.colorVariants) : [],
-      images: row.images ? JSON.parse(row.images) : [row.image].filter(Boolean),
-      priceRange: row.priceRange ? JSON.parse(row.priceRange) : null,
-      customizationFields: row.customizationFields ? JSON.parse(row.customizationFields) : []
+      details: (() => { 
+        const d = safeJsonParse(row.details, []); 
+        return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; 
+      })(),
+      tags: safeJsonParse(row.tags, []),
+      sizes: safeJsonParse(row.sizes, []),
+      colors: safeJsonParse(row.colors, []),
+      colorVariants: safeJsonParse(row.colorVariants, []),
+      images: safeJsonParse(row.images, [row.image].filter(Boolean)),
+      priceRange: safeJsonParse(row.priceRange, null),
+      customizationFields: safeJsonParse(row.customizationFields, [])
     }));
     res.json(products);
   } catch (error) {
@@ -425,24 +446,94 @@ router.get('/search', async (req, res) => {
   if (!query) return res.json([]);
 
   try {
-    const searchTerm = `%${query}%`;
+    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return res.json([]);
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+    
+    for (const word of words) {
+      conditions.push(`(name LIKE ? OR category LIKE ? OR brand LIKE ? OR tags LIKE ? OR description LIKE ? OR gender LIKE ?)`);
+      const term = `%${word}%`;
+      params.push(term, term, term, term, term, term);
+    }
+    
     const rows = await db.all(
-      `SELECT * FROM products 
-       WHERE name LIKE ? OR category LIKE ? OR brand LIKE ? OR tags LIKE ?`,
-      [searchTerm, searchTerm, searchTerm, searchTerm]
+      `SELECT * FROM products WHERE ${conditions.join(' OR ')}`,
+      params
     );
     
-    const products = rows.map(row => ({
+    const scoredProducts = rows.map(row => {
+      const name = (row.name || '').toLowerCase();
+      const category = (row.category || '').toLowerCase();
+      const brand = (row.brand || '').toLowerCase();
+      const description = (row.description || '').toLowerCase();
+      const gender = (row.gender || '').toLowerCase();
+      const tags = (row.tags || '').toLowerCase();
+      
+      let score = 0;
+      let matchedAll = true;
+
+      for (const word of words) {
+        let wordMatch = false;
+        if (name.includes(word)) {
+          score += 10;
+          wordMatch = true;
+        }
+        if (brand.includes(word)) {
+          score += 8;
+          wordMatch = true;
+        }
+        if (category.includes(word)) {
+          score += 5;
+          wordMatch = true;
+        }
+        if (tags.includes(word)) {
+          score += 4;
+          wordMatch = true;
+        }
+        if (gender.includes(word)) {
+          score += 3;
+          wordMatch = true;
+        }
+        if (description.includes(word)) {
+          score += 1;
+          wordMatch = true;
+        }
+        
+        if (!wordMatch) {
+          matchedAll = false;
+        }
+      }
+
+      if (matchedAll) {
+        score += 50;
+      }
+
+      return { row, score };
+    });
+
+    // Filter out items with score = 0, sort by score descending, and map to formatted products
+    const sortedRows = scoredProducts
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.row);
+
+    const products = sortedRows.map(row => ({
       ...row,
-      details: (() => { try { const d = JSON.parse(row.details); return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; } catch { return []; } })(),
-      tags: row.tags ? JSON.parse(row.tags) : [],
-      sizes: row.sizes ? JSON.parse(row.sizes) : [],
-      colors: row.colors ? JSON.parse(row.colors) : [],
-      colorVariants: row.colorVariants ? JSON.parse(row.colorVariants) : [],
-      images: row.images ? JSON.parse(row.images) : [row.image].filter(Boolean),
-      priceRange: row.priceRange ? JSON.parse(row.priceRange) : null,
-      customizationFields: row.customizationFields ? JSON.parse(row.customizationFields) : []
+      details: (() => { 
+         const d = safeJsonParse(row.details, []); 
+         return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; 
+      })(),
+      tags: safeJsonParse(row.tags, []),
+      sizes: safeJsonParse(row.sizes, []),
+      colors: safeJsonParse(row.colors, []),
+      colorVariants: safeJsonParse(row.colorVariants, []),
+      images: safeJsonParse(row.images, [row.image].filter(Boolean)),
+      priceRange: safeJsonParse(row.priceRange, null),
+      customizationFields: safeJsonParse(row.customizationFields, [])
     }));
+    
     res.json(products);
   } catch (error) {
     console.error('Error searching products:', error);
@@ -474,14 +565,17 @@ router.get('/:id', async (req, res) => {
     const product = {
       ...row,
       categoryId: row.categoryId || null,
-      details: (() => { try { const d = JSON.parse(row.details); return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; } catch { return []; } })(),
-      tags: row.tags ? JSON.parse(row.tags) : [],
-      sizes: row.sizes ? JSON.parse(row.sizes) : [],
-      colors: row.colors ? JSON.parse(row.colors) : [],
-      colorVariants: row.colorVariants ? JSON.parse(row.colorVariants) : [],
-      images: row.images ? JSON.parse(row.images) : [row.image].filter(Boolean),
-      priceRange: row.priceRange ? JSON.parse(row.priceRange) : null,
-      customizationFields: row.customizationFields ? JSON.parse(row.customizationFields) : [],
+      details: (() => { 
+        const d = safeJsonParse(row.details, []); 
+        return Array.isArray(d) ? d.map(x => typeof x === "object" && x !== null ? (x.key && x.value ? `${x.key}: ${x.value}` : (x.value || x.key || JSON.stringify(x))) : String(x)) : []; 
+      })(),
+      tags: safeJsonParse(row.tags, []),
+      sizes: safeJsonParse(row.sizes, []),
+      colors: safeJsonParse(row.colors, []),
+      colorVariants: safeJsonParse(row.colorVariants, []),
+      images: safeJsonParse(row.images, [row.image].filter(Boolean)),
+      priceRange: safeJsonParse(row.priceRange, null),
+      customizationFields: safeJsonParse(row.customizationFields, []),
       slug: row.slug || generateSlug(row.name)
     };
 

@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Product } from '../types';
 import { databaseService } from '../services/databaseService';
 import { getImageUrl } from '../lib/imageUtils';
+import LazyImage from './LazyImage';
+import { triggerHaptic } from '../lib/haptics';
 import { 
   Search, 
   Camera, 
@@ -120,12 +122,59 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
         // Backend search
         const backendResults = await databaseService.searchProducts(searchQuery);
         
-        // Local filtering
-        const clientSideResults = products.filter(p => 
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-          p.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          p.category.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        // Local filtering with split-word scoring
+        const queryWords = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        
+        const scoredClientProducts = products.map(p => {
+          const name = (p.name || '').toLowerCase();
+          const category = (p.category || '').toLowerCase();
+          const brand = (p.brand || '').toLowerCase();
+          const description = (p.description || '').toLowerCase();
+          const gender = (p.gender || '').toLowerCase();
+          const pTags = Array.isArray(p.tags) ? p.tags.map(t => t.toLowerCase()) : [];
+          
+          let score = 0;
+          let matchedAll = true;
+
+          for (const word of queryWords) {
+            let wordMatch = false;
+            if (name.includes(word)) {
+              score += 10;
+              wordMatch = true;
+            }
+            if (brand.includes(word)) {
+              score += 8;
+              wordMatch = true;
+            }
+            if (category.includes(word)) {
+              score += 5;
+              wordMatch = true;
+            }
+            if (pTags.some(t => t.includes(word))) {
+              score += 4;
+              wordMatch = true;
+            }
+            if (gender.includes(word)) {
+              score += 3;
+              wordMatch = true;
+            }
+            if (description.includes(word)) {
+              score += 1;
+              wordMatch = true;
+            }
+            if (!wordMatch) {
+              matchedAll = false;
+            }
+          }
+
+          if (matchedAll) score += 50;
+          return { product: p, score };
+        });
+
+        const clientSideResults = scoredClientProducts
+          .filter(item => item.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(item => item.product);
         
         // Merge results
         const combinedResults = Array.from(new Map([...backendResults, ...clientSideResults].map(p => [p.id, p])).values());
@@ -144,9 +193,11 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
     const saved = getCookie('searchHistory');
     if (saved) {
       try {
-        setRecentSearches(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setRecentSearches(Array.isArray(parsed) ? parsed : []);
       } catch (e) {
         console.error('Error parsing search history', e);
+        setRecentSearches([]);
       }
     }
   }, []);
@@ -261,7 +312,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
     const phases = [
       'Isolating garment contour lines...',
       'Analyzing fabric shades & color palette...',
-      'Deconstructing texture silhouette weight...',
+      'Analyzing item details...',
       'Cross-referencing high-fashion look catalogues...'
     ];
     let phaseIdx = 0;
@@ -522,7 +573,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
                       : 'bg-white text-black hover:bg-[#00D1FF] transition-colors'
                   }`}
                 >
-                  Acquire Silhouette
+                  View Product
                 </button>
               </>
             )}
@@ -542,10 +593,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
         }
       `}</style>
 
-      {/* Simplified Header spacing */}
-      <div className="pt-8"></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 md:px-20 mt-12 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-3 sm:pt-4 space-y-6">
         
         {/* Simplified Unified Search Controls */}
         <div className="space-y-4">
@@ -560,7 +608,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { saveSearch(searchQuery); } }}
-                  placeholder="Enter keywords, tags or silhouettes..."
+                  placeholder="Search items, tags, or categories..."
                   className="bg-transparent border-none outline-none w-full text-sm text-white placeholder-zinc-500 pl-3 py-2 pr-4 font-medium"
                 />
                 {searchQuery && (
@@ -682,7 +730,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
                     <option value="PRICE_ASC" className="bg-[#050505] text-white">Price: Low to High</option>
                     <option value="PRICE_DESC" className="bg-[#050505] text-white">Price: High to Low</option>
                     <option value="POPULARITY" className="bg-[#050505] text-white">Popularity (Viewers)</option>
-                    <option value="NEWEST" className="bg-[#050505] text-white">Newest Silhouettes</option>
+                    <option value="NEWEST" className="bg-[#050505] text-white">Newest Arrivals</option>
                   </select>
                 </div>
 
@@ -732,7 +780,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
                   <label className="flex items-center justify-between cursor-pointer group py-2 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3">
                     <div className="space-y-0.5">
                       <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300 group-hover:text-white transition-colors">In-Stock Only</span>
-                      <p className="text-[8px] text-zinc-500 font-mono">Exclude unavailable silhouettes</p>
+                      <p className="text-[8px] text-zinc-500 font-mono">Exclude out of stock items</p>
                     </div>
                     <input
                       type="checkbox"
@@ -840,7 +888,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
               <div className="flex items-center justify-between pb-4 border-b border-white/5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#00D1FF] animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white">Neural Silhouette Scanner</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white">Visual Product Scanner</span>
                 </div>
                 <button 
                   onClick={() => { stopLiveCamera(); setShowCameraMode(false); }}
@@ -908,7 +956,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
                       <Camera className="w-6 h-6 animate-pulse" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-zinc-300">Align silhouette pattern</p>
+                      <p className="text-xs font-bold text-zinc-300">Take or upload a photo</p>
                       <p className="text-[10px] text-zinc-500 max-w-[280px] leading-relaxed mx-auto">Snap a picture or upload an external look design to fetch matching items instantly.</p>
                     </div>
                   </div>
@@ -1037,7 +1085,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
                       onClick={() => onProductClick(product)}
                     >
                       <div className="aspect-[3/4] bg-zinc-950 flex items-center justify-center relative overflow-hidden">
-                        <img 
+                        <LazyImage 
                           src={getImageUrl(product.image)} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500" 
                           alt={product.name}
@@ -1105,7 +1153,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
             ) : (
               <div className="text-center py-24 text-zinc-500 space-y-4">
                 <Camera className="w-8 h-8 mx-auto text-zinc-700 animate-bounce" />
-                <p className="text-xs font-mono max-w-sm mx-auto leading-relaxed">Align or snap a garment using the visual camera scanner to list identical matching silhouettes.</p>
+                <p className="text-xs font-mono max-w-sm mx-auto leading-relaxed">Take or upload a photo of clothing to find matching items.</p>
               </div>
             )
           ) : (
@@ -1129,7 +1177,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
                           onClick={() => onProductClick(product)}
                         >
                           <div className="aspect-[3/4] bg-zinc-950 flex items-center justify-center relative overflow-hidden">
-                            <img 
+                            <LazyImage 
                               src={getImageUrl(product.image)} 
                               className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500" 
                               alt={product.name}
@@ -1217,7 +1265,7 @@ const SearchPageView: React.FC<SearchPageViewProps> = ({
                             className="w-24 h-32 overflow-hidden bg-zinc-900 relative rounded-xl border border-white/5 cursor-pointer shrink-0"
                             onClick={() => onProductClick(product)}
                           >
-                            <img 
+                            <LazyImage 
                               src={getImageUrl(product.image)} 
                               className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500" 
                               alt={product.name}

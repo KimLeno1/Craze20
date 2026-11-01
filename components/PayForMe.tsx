@@ -1,7 +1,36 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { RankBenefits, Product, PayForMeRequest, PayForMeStatus } from '../types';
 import { databaseService } from '../services/databaseService';
-import { Share2, Wallet, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { 
+  Share2, 
+  Wallet, 
+  Clock, 
+  CheckCircle2, 
+  XCircle, 
+  AlertCircle, 
+  Crown, 
+  Sparkles, 
+  Shield, 
+  ChevronRight, 
+  Info, 
+  Lock, 
+  ArrowUpRight,
+  Plus,
+  Copy,
+  Check,
+  ExternalLink,
+  Truck,
+  Heart,
+  Search,
+  X,
+  Gift,
+  RefreshCw,
+  Loader2,
+  Phone,
+  MapPin
+} from 'lucide-react';
+import { PayForMeShareModal } from './PayForMeShareModal';
+import { RANK_BENEFITS, RANK_THRESHOLDS } from '../data/rankingSystem';
 import { toast } from 'sonner';
 
 interface PayForMeProps {
@@ -12,20 +41,32 @@ interface PayForMeProps {
   userId: string;
 }
 
-const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteAcquisition, userHandle, userId }) => {
+const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts = [], onCompleteAcquisition, userHandle, userId }) => {
   const [activeRequests, setActiveRequests] = useState<PayForMeRequest[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
   const [paymentLink, setPaymentLink] = useState<{ url: string; requestId: string } | null>(null);
+  const [sharingRequest, setSharingRequest] = useState<PayForMeRequest | null>(null);
   const [showRules, setShowRules] = useState(false);
+  const [showTierSlotsModal, setShowTierSlotsModal] = useState(false);
   const [selectedPaidRequest, setSelectedPaidRequest] = useState<PayForMeRequest | null>(null);
   const [protocols, setProtocols] = useState<any[]>([]);
   const [userEmail, setUserEmail] = useState<string>('');
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [wishlistSearch, setWishlistSearch] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [storeCredit, setStoreCredit] = useState(0);
+
+  // Fallback safe rank
+  const effectiveRank = rank || RANK_BENEFITS['Newcomer'] || {
+    tier: 'Newcomer',
+    payForMeSlots: 1,
+    wishlistRetentionDays: 7
+  };
+
+  const safeWishlistProducts = Array.isArray(wishlistProducts) ? wishlistProducts : [];
 
   // States for Checkout Protocol selection during registration
   const [selectedProductForSponsorship, setSelectedProductForSponsorship] = useState<Product | null>(null);
@@ -40,26 +81,38 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
 
   useEffect(() => {
     const fetchUser = async () => {
-        try {
-          const u = await databaseService.checkAuth();
-          if (u && u.user) {
-             setUserEmail(u.user.email);
-             const stats = await databaseService.getUserStats(u.user.uid);
-             if (stats) setStoreCredit(stats.storeCredit || 0);
-          }
-        } catch(e) {}
+      try {
+        const u = await databaseService.checkAuth();
+        if (u && u.user) {
+          setUserEmail(u.user.email);
+          const stats = await databaseService.getUserStats(u.user.uid);
+          if (stats) setStoreCredit(stats.storeCredit || 0);
+        }
+      } catch (e) {
+        console.error(e);
+      }
     };
     fetchUser();
     
     const fetchRequests = async () => {
-      const allRequests = await databaseService.getPayForMeRequests();
-      setActiveRequests(allRequests.filter(r => r.userId === userId || r.userName === userHandle));
+      try {
+        const allRequests = await databaseService.getPayForMeRequests();
+        const safeReqs = Array.isArray(allRequests) ? allRequests : [];
+        setActiveRequests(safeReqs.filter(r => r && (r.userId === userId || r.userName === userHandle)));
+      } catch (e) {
+        console.error('Failed to fetch requests:', e);
+        setActiveRequests([]);
+      }
     };
     fetchRequests();
 
     const fetchProtocols = async () => {
-      const userProtocols = await databaseService.getUserLogistics(userId);
-      setProtocols(Array.isArray(userProtocols) ? userProtocols : []);
+      try {
+        const userProtocols = await databaseService.getUserLogistics(userId);
+        setProtocols(Array.isArray(userProtocols) ? userProtocols : []);
+      } catch (e) {
+        setProtocols([]);
+      }
     };
     fetchProtocols();
 
@@ -85,7 +138,8 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
             if (data.status && data.data.status === 'success') {
               toast.success('Sponsorship authorized and recorded!');
               const allRequests = await databaseService.getPayForMeRequests();
-              setActiveRequests(allRequests.filter(r => r.userId === userId || r.userName === userHandle));
+              const safeReqs = Array.isArray(allRequests) ? allRequests : [];
+              setActiveRequests(safeReqs.filter(r => r && (r.userId === userId || r.userName === userHandle)));
             } else {
               toast.error('Validation failed.');
             }
@@ -99,18 +153,22 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
     checkCallback();
   }, [userId, userHandle]);
 
-  const canAddMore = activeRequests.filter(r => r.status === PayForMeStatus.PENDING || r.status === PayForMeStatus.APPROVED).length < rank.payForMeSlots;
+  const safeActiveRequests = Array.isArray(activeRequests) ? activeRequests : [];
+  const activeCount = safeActiveRequests.filter(r => r && (r.status === PayForMeStatus.PENDING || r.status === PayForMeStatus.APPROVED)).length;
+  const historyCount = safeActiveRequests.filter(r => r && (r.status === PayForMeStatus.REJECTED || r.status === PayForMeStatus.CLAIMED)).length;
+  const maxSlots = Math.max(1, Number(effectiveRank.payForMeSlots) || 1);
+  const canAddMore = activeCount < maxSlots;
 
   const handleInitializeSponsorship = async (product: Product, selectedProtocol: any) => {
     if (!canAddMore) return;
     if (!selectedProtocol) {
-      toast.error('Strategic alert: A Delivery/Checkout Protocol must be selected to register.');
+      toast.error('Please select a Delivery Address for this sponsorship.');
       return;
     }
     
     // Stock Check
-    if (!product.inStock || product.stockCount <= 0) {
-      toast.error('Strategic alert: This silhouette is currently out of stock.');
+    if (!product.inStock || (product.stockCount !== undefined && product.stockCount <= 0)) {
+      toast.error('This item is currently out of stock.');
       return;
     }
 
@@ -128,28 +186,29 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
         amountPaid: 0,
         status: PayForMeStatus.PENDING,
         timestamp: new Date().toISOString(),
-        message: `I'd love to have this ${product.name}! Can someone help me out?`,
+        message: `I'd love to have this ${product.name}! Can you help sponsor it?`,
         shippingProtocol: selectedProtocol
       };
 
       await databaseService.createPayForMeRequest(newRequest);
       
-      const shareLink = `${window.location.origin}/payformeshared/${userHandle}/${product.id}/${requestId}`;
+      const shareLink = `${window.location.origin}/payformeshared/${encodeURIComponent(userHandle)}/${encodeURIComponent(product.id)}/${encodeURIComponent(requestId)}`;
       setPaymentLink({ url: shareLink, requestId });
+      setSharingRequest(newRequest);
       
-      setActiveRequests(prev => [newRequest, ...prev]);
+      setActiveRequests(prev => [newRequest, ...(Array.isArray(prev) ? prev : [])]);
       setIsSelecting(false);
-      setSelectedProductForSponsorship(null); // Clear selected product state
+      setSelectedProductForSponsorship(null);
     } catch (error) {
       console.error('Failed to initialize sponsorship:', error);
-      toast.error('Failed to initialize sponsorship protocol. Please try again.');
+      toast.error('Failed to create gift link. Please try again.');
     } finally {
       setGeneratingId(null);
     }
   };
 
   const handlePayRemainingPaystack = async (request: PayForMeRequest) => {
-    const remaining = request.total - request.amountPaid;
+    const remaining = (request.total || 0) - (request.amountPaid || 0);
     
     try {
       const response = await databaseService.initializePaystackTransaction(
@@ -165,286 +224,460 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
       );
 
       if (response.status) {
-        if (response.data.isMock) {
+        if (response.data?.isMock) {
           toast.info("Dev Mode: Handshake simulation active...");
           const callbackUrl = `${window.location.origin}${window.location.pathname}?reference=${response.data.reference}`;
-          toast.info("Dev Mode: Redirecting to callback...");
+          toast.info("Redirecting to callback...");
           setTimeout(() => {
             window.location.href = callbackUrl;
           }, 1500);
           return;
         }
 
-        if (response.data.authorization_url) {
+        if (response.data?.authorization_url) {
           toast.info("Redirecting to Paystack secure checkout...");
           window.location.href = response.data.authorization_url;
         } else {
           toast.error("Paystack checkout URL not generated.");
         }
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       toast.error('Failed to initialize payment.');
     }
   };
 
   const handleConvertToCredit = async (request: PayForMeRequest) => {
-    if (request.amountPaid <= 0) {
+    if ((request.amountPaid || 0) <= 0) {
       try {
         await databaseService.updatePayForMeStatus(request.id, PayForMeStatus.REJECTED);
-        setActiveRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: PayForMeStatus.REJECTED } : r));
+        setActiveRequests(prev => (Array.isArray(prev) ? prev : []).map(r => r.id === request.id ? { ...r, status: PayForMeStatus.REJECTED } : r));
         toast.success('Request archived.');
-      } catch(e) {
+      } catch (e) {
         toast.error('Failed to archive request.');
       }
       return;
     }
     
     try {
-       const userStats = await databaseService.getUserStats(userId);
-       const updatedCredit = (userStats.storeCredit || 0) + request.amountPaid;
-       await databaseService.updateUserStats(userId, { ...userStats, storeCredit: updatedCredit });
-       await databaseService.updatePayForMeStatus(request.id, PayForMeStatus.REJECTED); // Mark as complete/rejected
-       setActiveRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: PayForMeStatus.REJECTED } : r));
-       toast.success(`Converted GH₵${request.amountPaid} to Credit Points.`);
-    } catch(err) {
-       console.error(err);
-       toast.error('Failed to convert to credit.');
+      const userStats = await databaseService.getUserStats(userId);
+      const updatedCredit = (userStats.storeCredit || 0) + (request.amountPaid || 0);
+      await databaseService.updateUserStats(userId, { ...userStats, storeCredit: updatedCredit });
+      await databaseService.updatePayForMeStatus(request.id, PayForMeStatus.REJECTED);
+      setActiveRequests(prev => (Array.isArray(prev) ? prev : []).map(r => r.id === request.id ? { ...r, status: PayForMeStatus.REJECTED } : r));
+      setStoreCredit(updatedCredit);
+      toast.success(`Converted GH₵${request.amountPaid} to Store Credit.`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to convert to credit.');
     }
   };
 
-  const getStatusIcon = (status: PayForMeStatus) => {
+  const getStatusBadge = (status: PayForMeStatus, isExpired: boolean) => {
+    if (isExpired) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+          <Clock className="w-3 h-3" /> Expired
+        </span>
+      );
+    }
     switch (status) {
-      case PayForMeStatus.PENDING: return <Clock className="w-4 h-4 text-amber-500" />;
-      case PayForMeStatus.APPROVED: return <CheckCircle2 className="w-4 h-4 text-blue-500" />;
-      case PayForMeStatus.PAID: return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
-      case PayForMeStatus.REJECTED: return <XCircle className="w-4 h-4 text-red-500" />;
-      default: return <AlertCircle className="w-4 h-4 text-zinc-500" />;
+      case PayForMeStatus.PENDING:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <Clock className="w-3 h-3" /> Awaiting Sponsor
+          </span>
+        );
+      case PayForMeStatus.APPROVED:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <CheckCircle2 className="w-3 h-3" /> Partially Funded
+          </span>
+        );
+      case PayForMeStatus.PAID:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <CheckCircle2 className="w-3 h-3" /> Fully Funded!
+          </span>
+        );
+      case PayForMeStatus.CLAIMED:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <Truck className="w-3 h-3" /> Claimed / Dispatching
+          </span>
+        );
+      case PayForMeStatus.REJECTED:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-zinc-800 text-zinc-400 border border-zinc-700">
+            <XCircle className="w-3 h-3" /> Archived
+          </span>
+        );
+      default:
+        return null;
     }
   };
 
   const filteredWishlistProducts = useMemo(() => {
-    if (!wishlistSearch.trim()) return wishlistProducts;
-    return wishlistProducts.filter(p => p.name.toLowerCase().includes(wishlistSearch.toLowerCase()));
-  }, [wishlistProducts, wishlistSearch]);
+    if (!wishlistSearch.trim()) return safeWishlistProducts;
+    return safeWishlistProducts.filter(p => p && p.name && p.name.toLowerCase().includes(wishlistSearch.toLowerCase()));
+  }, [safeWishlistProducts, wishlistSearch]);
 
   const filteredRequests = useMemo(() => {
     if (activeTab === 'ACTIVE') {
-      return activeRequests.filter(r => r.status !== PayForMeStatus.REJECTED && r.status !== PayForMeStatus.CLAIMED);
+      return safeActiveRequests.filter(r => r && r.status !== PayForMeStatus.REJECTED && r.status !== PayForMeStatus.CLAIMED);
     }
-    return activeRequests.filter(r => r.status === PayForMeStatus.REJECTED || r.status === PayForMeStatus.CLAIMED);
-  }, [activeRequests, activeTab]);
+    return safeActiveRequests.filter(r => r && (r.status === PayForMeStatus.REJECTED || r.status === PayForMeStatus.CLAIMED));
+  }, [safeActiveRequests, activeTab]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-32 animate-in fade-in duration-500">
-      <header className="space-y-4">
-        <div className="flex flex-col gap-2 relative z-10 pl-2">
-           <div className="flex items-center gap-2">
-             <div className="w-2 h-2 rounded-full bg-blue-300 shadow-[0_0_8px_#60a5fa]"></div>
-             <span className="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]">Vanguard Wallet</span>
-           </div>
-           <h1 className="text-5xl sm:text-7xl font-serif text-white leading-none">
-             Pay For ME
-           </h1>
-
-        </div>
-
-        <div className="glass-sapphire-main mt-6 p-6 sm:p-8 rounded-[2rem] flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-2xl relative overflow-hidden group">
-          <div className="space-y-1 relative z-10">
-            <p className="text-[10px] sm:text-xs font-black uppercase text-white/70 tracking-widest">Available Credit</p>
-            <p className="text-4xl sm:text-5xl font-serif text-white">${storeCredit.toFixed(2)}</p>
+    <div className="min-h-screen bg-[#050B14] text-white p-3.5 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-5 pb-36 animate-in fade-in duration-300">
+      {/* Mobile-Optimized Header */}
+      <header className="space-y-4 pt-1 sm:pt-2">
+        <div className="flex items-center justify-between">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+            <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+            <span className="text-[10px] font-mono font-bold text-blue-300 uppercase tracking-widest">
+              Gift & Sponsor Network
+            </span>
           </div>
-          <button className="mt-4 sm:mt-0 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-6 py-3 rounded-2xl text-xs font-black tracking-wider uppercase transition-colors relative z-10 shadow-[0_0_15px_rgba(255,255,255,0.1)] border border-white/20">
-            Get Store Credit
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowRules(true)}
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-[10px] font-mono font-medium flex items-center gap-1 transition-colors cursor-pointer border border-white/5"
+            >
+              <Info className="w-3 h-3" />
+              <span>Rules</span>
+            </button>
+          </div>
         </div>
-        
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mt-8">
-           <div className="flex flex-col">
-             <h2 className="text-[14px] sm:text-base font-black uppercase text-white tracking-[0.15em]">Active Requests</h2>
-           </div>
-           <div className="flex items-center gap-3 mt-3 sm:mt-0">
-              <span className="text-sm font-bold text-white/60">{activeRequests.filter(r => r.status === PayForMeStatus.PENDING || r.status === PayForMeStatus.APPROVED).length} Ongoing</span>
-           </div>
+
+        <div className="space-y-1">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif text-white tracking-tight leading-none flex items-center gap-2">
+            <span>Pay For Me</span>
+            <span className="text-xl sm:text-2xl text-[#C5A880]">✦</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-400 font-sans leading-relaxed max-w-xl">
+            Have friends, family, or gifters sponsor pieces directly from your vault wishlist.
+          </p>
+        </div>
+
+        {/* Mobile Stats & Tier Allowance Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {/* Card 1: Available Store Credit */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900/90 border border-white/10 shadow-lg flex flex-col justify-between relative overflow-hidden group">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[9px] font-mono font-bold uppercase text-zinc-400 tracking-wider">Available Store Credit</p>
+                <p className="text-2xl sm:text-3xl font-mono font-bold text-white mt-1">
+                  GH₵{storeCredit.toFixed(2)}
+                </p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <Wallet className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-zinc-400">
+              <span>Automatically applied at checkout</span>
+            </div>
+          </div>
+
+          {/* Card 2: Tier Slot Allowance */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900/90 border border-white/10 shadow-lg flex flex-col justify-between relative overflow-hidden group">
+            <div className="flex items-start justify-between">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <Crown className="w-3.5 h-3.5 text-amber-300" />
+                  <p className="text-[9px] font-mono font-bold uppercase text-amber-300 tracking-wider">
+                    {effectiveRank.tier} Tier Allowance
+                  </p>
+                </div>
+                <p className="text-2xl sm:text-3xl font-mono font-bold text-white">
+                  {activeCount} <span className="text-sm font-normal text-zinc-500">/ {maxSlots} Slots</span>
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowTierSlotsModal(true)}
+                className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-300 text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <span>Tiers</span>
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+
+            {/* Visual Slot Segment Bars */}
+            <div className="mt-3 pt-2.5 border-t border-white/5 space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: maxSlots }).map((_, idx) => (
+                  <div 
+                    key={idx}
+                    className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                      idx < activeCount 
+                        ? 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]' 
+                        : 'bg-zinc-800'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                <span>{canAddMore ? `${maxSlots - activeCount} slot(s) open` : 'Slot limit reached'}</span>
+                <span className="text-zinc-500">{typeof effectiveRank.wishlistRetentionDays === 'number' ? `${effectiveRank.wishlistRetentionDays}d buffer` : 'Permanent buffer'}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Active Sponsorships Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      {/* Segmented Tab Navigation & New Request Trigger */}
+      <div className="sticky top-2 z-30 bg-[#050B14]/90 backdrop-blur-xl border border-white/10 p-1.5 rounded-2xl flex items-center justify-between gap-2 shadow-2xl">
+        <div className="flex items-center gap-1 flex-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab('ACTIVE')}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'ACTIVE'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <span>Active</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[9px] ${activeTab === 'ACTIVE' ? 'bg-white/20 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+              {activeCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('HISTORY')}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'HISTORY'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <span>History</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[9px] ${activeTab === 'HISTORY' ? 'bg-white/20 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+              {historyCount}
+            </span>
+          </button>
+        </div>
+
+        {activeTab === 'ACTIVE' && canAddMore && !isSelecting && (
+          <button
+            type="button"
+            onClick={() => setIsSelecting(true)}
+            className="py-2.5 px-3.5 bg-white hover:bg-zinc-100 text-zinc-950 font-mono font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5 text-blue-600" />
+            <span className="hidden xs:inline sm:inline">New Request</span>
+            <span className="xs:hidden sm:hidden">New</span>
+          </button>
+        )}
+      </div>
+
+      {/* Requests List */}
+      <div className="space-y-4">
         {filteredRequests.map((request) => {
-          const product = request.items[0];
-          const isPaid = request.status === PayForMeStatus.PAID;
-          const isExpired = Date.now() - new Date(request.timestamp).getTime() > 21 * 24 * 60 * 60 * 1000;
+          const product = (Array.isArray(request.items) && request.items.length > 0)
+            ? request.items[0]
+            : ((request.items as any) || { id: 'unknown', name: 'Vault Piece', image: '', price: request.total || 0 });
           
+          const isPaid = request.status === PayForMeStatus.PAID;
+          const isExpired = Date.now() - new Date(request.timestamp || Date.now()).getTime() > 21 * 24 * 60 * 60 * 1000;
+          const progressPercent = Math.min(100, Math.max(0, Math.round(((request.amountPaid || 0) / (request.total || 1)) * 100)));
+          const shareUrl = `${window.location.origin}/payformeshared/${encodeURIComponent(request.userName || userHandle)}/${encodeURIComponent(product.id || 'item')}/${encodeURIComponent(request.id)}`;
+          const isCopied = copiedId === request.id;
+
           return (
-            <div key={request.id} className={`glass-sapphire-main p-5 sm:p-6 rounded-3xl border-white/20 relative group shadow-[0_8px_32px_rgba(0,0,0,0.1)] flex flex-col justify-between ${activeDropdownId === request.id ? 'z-50' : 'z-10'}`}>
-              <div>
-                <div className="flex gap-4 items-start sm:items-center">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 shadow-lg">
-                    <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <div className="flex flex-col">
-                        <h3 className="text-xs sm:text-sm font-black uppercase text-white tracking-wider truncate max-w-[150px] sm:max-w-[200px]">{product.name}</h3>
-                        <div className="mt-1 bg-white/10 px-2 py-0.5 rounded-md border border-white/20 w-fit">
-                          <span className="text-[8px] font-black text-white/90 uppercase tracking-widest">{isExpired ? 'EXPIRED' : request.status}</span>
-                        </div>
-                      </div>
-
+            <div 
+              key={request.id} 
+              className="bg-zinc-900/90 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl relative overflow-hidden transition-all hover:border-white/20"
+            >
+              <div className="flex gap-3.5 sm:gap-4 items-start">
+                {/* Product Thumbnail */}
+                <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-xl bg-zinc-950 overflow-hidden shrink-0 relative border border-white/10">
+                  <img 
+                    src={product.image || ''} 
+                    className="w-full h-full object-cover" 
+                    alt={product.name || 'Product'} 
+                  />
+                  {product.selectedSize && (
+                    <div className="absolute bottom-1 left-1 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[8px] font-mono font-bold text-amber-300 border border-white/10">
+                      Size: {product.selectedSize}
                     </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2 mt-6">
-                  <div className="flex justify-between text-[10px] font-bold text-white/80">
-                    <span>${request.amountPaid.toFixed(2)} Raised</span>
-                    <span>${request.total.toFixed(2)} Target</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-blue-300 transition-all duration-1000 shadow-[0_0_10px_#60a5fa]" 
-                      style={{ width: (request.status === PayForMeStatus.PAID || request.status === PayForMeStatus.CLAIMED) ? '100%' : `${Math.min(100, Math.max(8, (request.amountPaid / request.total) * 100))}%` }}
-                    ></div>
-                  </div>
+                  )}
                 </div>
 
-                {/* Expanded Inline Copy & share segment */}
-                {activeDropdownId === request.id && (
-                  <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10 space-y-3 animate-in slide-in-from-top-2 duration-300">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[8px] font-black uppercase text-white/60 tracking-wider">Sponsorship Link</span>
-                      <button 
-                        onClick={() => setActiveDropdownId(null)}
-                        className="text-[8px] font-black text-white/80 hover:text-white uppercase tracking-widest bg-white/10 px-2 py-1 rounded cursor-pointer"
-                      >
-                        Close
-                      </button>
+                {/* Details */}
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                        {product.name || 'Selected Piece'}
+                      </h3>
+                      <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider mt-0.5">
+                        {product.category || 'Archival Item'}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-black/20 rounded-lg border border-white/5">
-                      <span className="flex-1 text-[9px] font-mono text-white/70 truncate pr-1 select-all overflow-hidden text-ellipsis">
-                        {`${window.location.origin}/payformeshared/${request.userName || userHandle}/${product.id}/${request.id}`}
+
+                    <div className="shrink-0">
+                      {getStatusBadge(request.status, isExpired)}
+                    </div>
+                  </div>
+
+                  {/* Financial Goal & Progress */}
+                  <div className="pt-2 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="font-bold text-white">
+                        GH₵{(request.amountPaid || 0).toFixed(2)}{' '}
+                        <span className="text-zinc-500 font-normal">/ GH₵{(request.total || 0).toFixed(2)}</span>
                       </span>
-                      <button 
-                        onClick={() => {
-                          const link = `${window.location.origin}/payformeshared/${request.userName || userHandle}/${product.id}/${request.id}`;
-                          navigator.clipboard.writeText(link);
-                          toast.success('Sponsorship link copied to clipboard!');
-                        }}
-                        className="px-2.5 py-1.5 bg-white text-blue-900 rounded text-[8px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all cursor-pointer"
-                      >
-                        Copy
-                      </button>
+                      <span className="font-bold text-blue-400">{progressPercent}%</span>
                     </div>
-                    {navigator.share && (
-                      <button 
-                        onClick={() => {
-                          const link = `${window.location.origin}/payformeshared/${request.userName || userHandle}/${product.id}/${request.id}`;
-                          navigator.share({
-                            title: `Sponsor my request for ${product.name}`,
-                            text: `Could you support my order of "${product.name}" at Closet Kraze?`,
-                            url: link
-                          }).catch(() => {});
-                        }}
-                        className="w-full py-2 bg-white/10 text-white hover:bg-white/20 border border-white/10 rounded-lg text-[8px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Share2 className="w-3 h-3" /> Share with external apps
-                      </button>
-                    )}
+
+                    {/* Progress Bar */}
+                    <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-700 rounded-full ${
+                          isPaid || request.status === PayForMeStatus.CLAIMED
+                            ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'
+                            : 'bg-gradient-to-r from-blue-600 to-[#00D1FF] shadow-[0_0_8px_rgba(0,209,255,0.4)]'
+                        }`}
+                        style={{ width: `${isPaid || request.status === PayForMeStatus.CLAIMED ? 100 : Math.max(progressPercent, 5)}%` }}
+                      />
+                    </div>
                   </div>
-                )}
+
+                  {/* Shipping Address Pill */}
+                  {request.shippingProtocol && (
+                    <div className="pt-1 flex items-center gap-1 text-[9px] font-mono text-zinc-400 truncate">
+                      <MapPin className="w-3 h-3 text-zinc-500 shrink-0" />
+                      <span className="truncate">Ships to: {request.shippingProtocol.name} ({request.shippingProtocol.city})</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="mt-5">
-                {!isPaid && !isExpired && (
-                  <div className="flex gap-3">
-                    <button 
-                      onClick={() => setActiveDropdownId(activeDropdownId === request.id ? null : request.id)}
-                      className="py-2.5 px-3 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 flex-1 min-h-[44px] cursor-pointer"
+              {/* Action Buttons for Mobile */}
+              <div className="mt-4 pt-3.5 border-t border-white/5 space-y-2">
+                {!isPaid && !isExpired && request.status !== PayForMeStatus.CLAIMED && (
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Share Modal Trigger */}
+                    <button
+                      type="button"
+                      onClick={() => setSharingRequest(request)}
+                      className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.98] min-h-[44px]"
                     >
-                      Share link
+                      <Share2 className="w-4 h-4" />
+                      <span>Share Sponsor Link</span>
                     </button>
+
+                    {/* Fast Copy Link Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(shareUrl);
+                        setCopiedId(request.id);
+                        toast.success('Sponsorship URL copied to clipboard!');
+                        setTimeout(() => setCopiedId(null), 2500);
+                      }}
+                      className="py-3 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] min-h-[44px]"
+                    >
+                      {isCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      <span>{isCopied ? 'Copied' : 'Copy Link'}</span>
+                    </button>
+
+                    {/* Pay Remaining if partially approved */}
                     {request.status === PayForMeStatus.APPROVED && (
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => handlePayRemainingPaystack(request)}
-                        className="py-2.5 px-3 bg-blue-300 hover:bg-blue-200 text-blue-950 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex-1 min-h-[44px] cursor-pointer"
+                        className="py-3 px-4 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg active:scale-[0.98] min-h-[44px]"
                       >
-                        Pay remaining
+                        <Wallet className="w-4 h-4" />
+                        <span>Pay Remaining</span>
                       </button>
                     )}
                   </div>
                 )}
 
-                {!isPaid && isExpired && (
-                  <div className="flex w-full">
-                    <button 
-                      onClick={() => handleConvertToCredit(request)}
-                      className="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
-                    >
-                      Credit refunded to wallet
-                    </button>
-                  </div>
+                {/* Claim funded item */}
+                {isPaid && request.status !== PayForMeStatus.REJECTED && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPaidRequest(request)}
+                    className="w-full py-3.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_25px_rgba(16,185,129,0.3)] active:scale-[0.98] min-h-[44px]"
+                  >
+                    <Truck className="w-4 h-4" />
+                    <span>Claim Item & Confirm Dispatch</span>
+                  </button>
                 )}
 
-                {isPaid && request.status !== PayForMeStatus.REJECTED && (
-                  <div className="flex w-full">
-                    <button 
-                      onClick={() => setSelectedPaidRequest(request)}
-                      className="w-full py-3 bg-white text-blue-900 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
-                    >
-                      Claim sponsored item
-                    </button>
-                  </div>
+                {/* Expired Item Refund to credit */}
+                {!isPaid && isExpired && (
+                  <button
+                    type="button"
+                    onClick={() => handleConvertToCredit(request)}
+                    className="w-full py-3 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
+                  >
+                    <RefreshCw className="w-4 h-4 text-amber-400" />
+                    <span>Convert Raised Balance to Store Credit</span>
+                  </button>
                 )}
               </div>
             </div>
           );
         })}
 
-        {/* Add New Sponsorship Button */}
-        {activeTab === 'ACTIVE' && canAddMore && !isSelecting && (
-          <button 
-            onClick={() => setIsSelecting(true)}
-            className="h-[200px] sm:h-[240px] rounded-2xl sm:rounded-[3rem] border-2 border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center gap-3 hover:border-[#0F52BA]/60 hover:bg-[#0F52BA]/5 transition-all group cursor-pointer p-4 text-center"
-          >
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-zinc-900 flex items-center justify-center text-xl sm:text-2xl group-hover:scale-110 group-hover:bg-[#0F52BA] group-hover:text-white transition-transform">➕</div>
-            <div className="space-y-1">
-              <p className="text-xs font-black text-white uppercase tracking-widest group-hover:text-[#C5A880]">New Sponsorship Request</p>
-              <p className="text-[8px] text-zinc-500 uppercase tracking-widest font-bold">Import direct from wishlist</p>
+        {/* Empty State / Add New Trigger */}
+        {activeTab === 'ACTIVE' && filteredRequests.length === 0 && (
+          <div className="py-12 px-4 text-center rounded-3xl bg-zinc-900/40 border border-dashed border-white/10 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto text-2xl text-blue-400">
+              <Gift className="w-7 h-7" />
             </div>
-          </button>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white">No Active Sponsorships</h3>
+              <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                Select any item from your wishlist to create a custom shareable link for gifters.
+              </p>
+            </div>
+            {canAddMore && (
+              <button
+                type="button"
+                onClick={() => setIsSelecting(true)}
+                className="px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-lg active:scale-95 inline-flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create First Request</span>
+              </button>
+            )}
+          </div>
         )}
 
-        {filteredRequests.length === 0 && activeTab === 'HISTORY' && (
-          <div className="col-span-full py-16 text-center opacity-30 italic uppercase text-[9px] tracking-widest text-white">No archived transmissions found.</div>
+        {/* History Empty State */}
+        {activeTab === 'HISTORY' && filteredRequests.length === 0 && (
+          <div className="py-12 text-center text-zinc-500 font-mono text-xs uppercase tracking-widest">
+            No archived or completed sponsorship requests yet.
+          </div>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-8">
-        <button className="glass-sapphire-main p-8 rounded-3xl flex flex-col items-center justify-center gap-4 hover:bg-white/10 transition-colors shadow-lg border border-white/10 group cursor-pointer">
-           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/80 group-hover:scale-110 transition-transform"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>
-           <span className="text-xs font-black uppercase text-white/90 tracking-[0.15em]">Bank Sync</span>
-        </button>
-        <button onClick={() => setActiveTab('HISTORY')} className="glass-sapphire-main p-8 rounded-3xl flex flex-col items-center justify-center gap-4 hover:bg-white/10 transition-colors shadow-lg border border-white/10 group cursor-pointer">
-           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/80 group-hover:scale-110 transition-transform"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
-           <span className="text-xs font-black uppercase text-white/90 tracking-[0.15em]">History</span>
-        </button>
-      </div>
-
-      {/* Wishlist Selection Modal */}
+      {/* Wishlist Selection Modal (Mobile Bottom Sheet / Desktop Modal) */}
       {isSelecting && (
-        <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-zinc-950 border border-white/10 w-full max-w-lg rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 flex flex-col max-h-[85vh] shadow-3xl">
-            
+        <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-zinc-950 border-t sm:border border-white/10 w-full max-w-lg rounded-t-[2rem] sm:rounded-[2rem] p-4 sm:p-6 flex flex-col max-h-[90vh] shadow-2xl animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
             {!selectedProductForSponsorship ? (
-              // STEP 1: SELECT SILHOUETTE FROM WISHLIST
+              // STEP 1: SELECT PRODUCT
               <>
-                <header className="flex justify-between items-center mb-4 shrink-0">
+                <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-serif italic text-white flex items-center gap-1.5 leading-none">
-                      Select Silhouette
+                    <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-1.5">
+                      <span>Select Wishlist Item</span>
                     </h2>
-                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-1">Sponsor slots allocation — Step 1 of 2</p>
+                    <p className="text-[10px] font-mono text-zinc-400">
+                      Step 1 of 2 • Choose silhouette to sponsor
+                    </p>
                   </div>
                   <button 
                     onClick={() => {
@@ -452,57 +685,63 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
                       setSelectedProductForSponsorship(null);
                       setWishlistSearch('');
                     }} 
-                    className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 transition-all flex items-center justify-center text-white text-md cursor-pointer shrink-0"
+                    className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
-                </header>
+                </div>
 
-                {/* Mobile Search Bar */}
+                {/* Search Bar */}
                 {wishlistProducts.length > 0 && (
-                  <div className="mb-4 shrink-0">
-                    <input 
-                      type="text"
-                      placeholder="Search items in wishlist..."
-                      value={wishlistSearch}
-                      onChange={(e) => setWishlistSearch(e.target.value)}
-                      className="w-full bg-zinc-900 border border-white/5 text-xs text-white placeholder-zinc-500 rounded-xl px-4 py-3 outline-none focus:border-[#0F52BA]/60 focus:ring-1 focus:ring-[#0F52BA]/20 transition-all font-sans"
-                    />
+                  <div className="pt-3 pb-2 shrink-0">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <input 
+                        type="text"
+                        placeholder="Search your wishlist items..."
+                        value={wishlistSearch}
+                        onChange={(e) => setWishlistSearch(e.target.value)}
+                        className="w-full bg-zinc-900 border border-white/10 text-xs text-white placeholder-zinc-500 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-500 transition-all font-sans"
+                      />
+                    </div>
                   </div>
                 )}
-                
-                <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 min-h-[150px]">
+
+                {/* Wishlist Items List */}
+                <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 my-2 min-h-[160px]">
                   {wishlistProducts.length === 0 ? (
-                    <div className="text-center py-12 space-y-3">
-                      <div className="text-4xl text-[#0F52BA]/40">📭</div>
-                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-black">Your wishlist is empty</p>
-                      <p className="text-[8.5px] text-zinc-600 uppercase tracking-widest leading-relaxed max-w-xs mx-auto">
-                        Favorite products in the showroom first to request backup sponsorship here.
+                    <div className="text-center py-10 space-y-2">
+                      <Heart className="w-8 h-8 text-zinc-600 mx-auto" />
+                      <p className="text-xs font-bold text-zinc-300">Your wishlist is empty</p>
+                      <p className="text-[10px] text-zinc-500 max-w-xs mx-auto">
+                        Explore the curated vault and tap the heart icon on any product to save it here for sponsorship.
                       </p>
                     </div>
                   ) : filteredWishlistProducts.length === 0 ? (
-                    <div className="text-center py-12 space-y-2 text-zinc-500 italic uppercase text-[8.5px] tracking-widest">
-                      No matching wishlist silhouettes found.
+                    <div className="text-center py-8 text-zinc-500 font-mono text-xs">
+                      No matching items in wishlist.
                     </div>
                   ) : (
                     filteredWishlistProducts.map(product => (
                       <div 
                         key={product.id} 
-                        className="flex items-center gap-3.5 p-3 sm:p-4 bg-white/5 border border-white/5 hover:border-[#0F52BA]/40 hover:bg-[#0F52BA]/5 rounded-2xl transition-all group active:scale-[0.99]"
+                        className="flex items-center gap-3 p-3 bg-zinc-900/80 border border-white/5 hover:border-blue-500/40 rounded-2xl transition-all"
                       >
-                        <div className="w-14 h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-zinc-900">
+                        <div className="w-14 h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-zinc-950">
                           <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="text-xs font-black text-white uppercase truncate pr-2">{product.name}</h4>
-                          <p className="text-[10.5px] font-mono font-medium text-[#C5A880] mt-1">GH₵{product.price}</p>
+                          <h4 className="text-xs font-bold text-white truncate">{product.name}</h4>
+                          <p className="text-xs font-mono font-bold text-[#C5A880] mt-0.5">GH₵{product.price}</p>
+                          <span className="text-[9px] font-mono text-zinc-400">{product.category || 'Vault Piece'}</span>
                         </div>
                         <button 
+                          type="button"
                           onClick={() => {
                             setSelectedProductForSponsorship(product);
                             setWishlistSearch('');
                           }}
-                          className="px-4 py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#0F52BA] hover:text-white active:scale-95 transition-all min-h-[44px] cursor-pointer shadow-md shrink-0 whitespace-nowrap"
+                          className="px-4 py-2.5 bg-white text-zinc-950 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer shrink-0 min-h-[40px]"
                         >
                           Select
                         </button>
@@ -512,21 +751,21 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
                 </div>
               </>
             ) : (
-              // STEP 2: SELECT CHECKOUT PROTOCOL
+              // STEP 2: SHIPPING PROTOCOL
               <>
-                <header className="flex justify-between items-center mb-4 shrink-0">
+                <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
                   <div>
                     <button 
                       onClick={() => {
                         setSelectedProductForSponsorship(null);
                         setShowAddProtocolInline(false);
                       }}
-                      className="text-[#C5A880] hover:underline text-[9px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-1 cursor-pointer active:scale-95 transition-all"
+                      className="text-blue-400 text-[10px] font-mono font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1 cursor-pointer"
                     >
                       ← Back to Silhouettes
                     </button>
-                    <h2 className="text-lg sm:text-xl font-serif italic text-white leading-tight">Assign Location</h2>
-                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-0.5">Checkout protocol — Step 2 of 2</p>
+                    <h2 className="text-base sm:text-lg font-bold text-white">Delivery Destination</h2>
+                    <p className="text-[10px] font-mono text-zinc-400">Step 2 of 2 • Where should this piece be sent?</p>
                   </div>
                   <button 
                     onClick={() => {
@@ -534,161 +773,161 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
                       setSelectedProductForSponsorship(null);
                       setShowAddProtocolInline(false);
                     }} 
-                    className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white text-md cursor-pointer shrink-0 active:scale-95 transition-all"
+                    className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
-                </header>
+                </div>
 
-                {/* Confirmed item details */}
-                <div className="p-3.5 bg-zinc-900/60 rounded-2xl border border-white/5 flex gap-3.5 items-center mb-4 shrink-0">
-                  <div className="w-12 h-14 rounded-xl overflow-hidden border border-white/10 shrink-0 bg-zinc-950">
+                {/* Selected Product Summary Card */}
+                <div className="p-3 bg-zinc-900 rounded-xl border border-white/5 flex gap-3 items-center my-3 shrink-0">
+                  <div className="w-12 h-14 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-zinc-950">
                     <img src={selectedProductForSponsorship.image} className="w-full h-full object-cover" alt={selectedProductForSponsorship.name} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-[10.5px] font-black text-white uppercase truncate">{selectedProductForSponsorship.name}</h4>
-                    <div className="flex flex-col gap-0.5 mt-1">
-                      <span className="text-zinc-500 text-[8.5px] font-bold uppercase">Price: <span className="text-white font-mono">GH₵{selectedProductForSponsorship.price}</span></span>
-                      <span className="text-zinc-500 text-[8.5px] font-bold uppercase">Shipping: <span className="text-[#C5A880] font-mono">+ GH₵{selectedProductForSponsorship.shippingFee || 15}</span></span>
-                    </div>
+                    <h4 className="text-xs font-bold text-white truncate">{selectedProductForSponsorship.name}</h4>
+                    <p className="text-xs font-mono font-bold text-[#C5A880]">GH₵{selectedProductForSponsorship.price}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-[7.5px] font-black text-zinc-500 uppercase block tracking-wider leading-none mb-1">Estimated Target</span>
-                    <span className="text-[12px] font-mono font-black text-[#C5A880] block">GH₵{selectedProductForSponsorship.price + (selectedProductForSponsorship.shippingFee || 15)}</span>
+                    <span className="text-[8px] font-mono text-zinc-400 block uppercase">Estimated Target</span>
+                    <span className="text-xs font-mono font-bold text-white">
+                      GH₵{selectedProductForSponsorship.price + (selectedProductForSponsorship.shippingFee || 0)}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+                <div className="flex-1 overflow-y-auto pr-1 space-y-3 pb-2">
                   {!showAddProtocolInline ? (
                     <>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Saved Protocols ({protocols.length})</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono font-bold uppercase text-zinc-400">Saved Addresses ({protocols.length})</span>
+                        <button 
+                          onClick={() => setShowAddProtocolInline(true)}
+                          className="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-blue-400 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" /> New Address
+                        </button>
+                      </div>
+
+                      {protocols.length === 0 ? (
+                        <div className="text-center py-6 bg-zinc-900/60 rounded-xl border border-dashed border-white/10 p-4 space-y-3">
+                          <MapPin className="w-6 h-6 text-zinc-500 mx-auto" />
+                          <p className="text-xs font-bold text-white">No delivery address saved</p>
+                          <p className="text-[10px] text-zinc-400 max-w-xs mx-auto">
+                            A shipping address is needed so we can dispatch the item directly to you once sponsored.
+                          </p>
                           <button 
                             onClick={() => setShowAddProtocolInline(true)}
-                            className="bg-white/5 hover:bg-white/10 text-[#C5A880] px-2.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                            className="w-full py-3 bg-white text-zinc-950 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer min-h-[44px]"
                           >
-                            ➕ New Protocol
+                            Add Address Now
                           </button>
                         </div>
-
-                        {protocols.length === 0 ? (
-                          <div className="text-center py-8 bg-zinc-900/30 rounded-2xl border border-dashed border-white/10 p-5 space-y-3">
-                            <p className="text-[9.5px] text-zinc-400 font-black uppercase tracking-widest">No logistics protocols detected</p>
-                            <p className="text-[8px] text-zinc-500 uppercase tracking-widest leading-relaxed max-w-xs mx-auto">
-                              A checkout protocol is required to initiate a sponsorship task so delivery can be pre-configured.
-                            </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {protocols.map(p => (
                             <button 
-                              onClick={() => setShowAddProtocolInline(true)}
-                              className="w-full py-3 bg-white text-black text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer hover:bg-[#0F52BA] hover:text-white min-h-[44px] flex items-center justify-center font-bold"
+                              key={p.id}
+                              disabled={generatingId !== null}
+                              onClick={() => handleInitializeSponsorship(selectedProductForSponsorship, p)}
+                              className="w-full p-3.5 bg-zinc-900 hover:bg-zinc-850 border border-white/5 hover:border-blue-500/50 rounded-xl transition-all text-left flex justify-between items-center cursor-pointer min-h-[54px] active:scale-[0.99]"
                             >
-                              Add Address Now
+                              <div className="min-w-0 pr-2">
+                                <p className="text-xs font-bold text-white uppercase">{p.name}</p>
+                                <p className="text-[10px] text-zinc-400 truncate">{p.address}, {p.city}</p>
+                                <p className="text-[9px] font-mono text-zinc-500 mt-0.5">Phone: {p.phone}</p>
+                              </div>
+                              <span className="text-[10px] font-mono font-bold text-white uppercase bg-blue-600 px-3 py-1.5 rounded-lg shrink-0">
+                                {generatingId === selectedProductForSponsorship.id ? 'Creating...' : 'Select'}
+                              </span>
                             </button>
-                          </div>
-                        ) : (
-                          <div className="space-y-2.5">
-                            {protocols.map(p => (
-                              <button 
-                                key={p.id}
-                                disabled={generatingId !== null}
-                                onClick={() => handleInitializeSponsorship(selectedProductForSponsorship, p)}
-                                className="w-full p-4 bg-zinc-900 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 rounded-2xl transition-all text-left flex justify-between items-center cursor-pointer min-h-[64px] active:scale-[0.99]"
-                              >
-                                <div className="min-w-0 pr-4">
-                                  <p className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors uppercase leading-none">{p.name}</p>
-                                  <p className="text-[9.5px] text-zinc-400 mt-2 uppercase tracking-wide truncate">{p.address}, {p.city}</p>
-                                  <p className="text-[8px] text-zinc-500 font-mono mt-1 uppercase tracking-wider">Recipient: {p.phone}</p>
-                                </div>
-                                <span className="text-[8px] font-black text-white uppercase tracking-widest bg-white/5 border border-white/10 px-3 py-2 rounded-xl transition-all shrink-0 active:scale-95">
-                                  {generatingId === selectedProductForSponsorship.id ? 'Structuring...' : 'Select'}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </>
                   ) : (
-                    <div className="space-y-4 bg-white/5 border border-white/10 p-5 rounded-2xl animate-in fade-in zoom-in-95 duration-200">
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Create Logistics Protocol</h3>
+                    // Add Address Form
+                    <div className="space-y-3 bg-zinc-900/90 border border-white/10 p-4 rounded-xl">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-mono font-bold text-white uppercase">Add New Address</h3>
                         <button 
                           onClick={() => {
                             setShowAddProtocolInline(false);
                             setNewProtocolForm({ name: '', phone: '', address: '', city: '', region: '' });
                           }}
-                          className="bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg cursor-pointer active:scale-95 transition-all"
+                          className="text-[9px] font-mono text-zinc-400 hover:text-white uppercase cursor-pointer"
                         >
                           Cancel
                         </button>
                       </div>
 
-                      <div className="space-y-3.5">
-                        <div className="space-y-1.5">
-                          <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Protocol Name (e.g. Home, Office)</label>
+                      <div className="space-y-2.5">
+                        <div>
+                          <label className="text-[9px] font-mono text-zinc-400 uppercase block mb-1">Label (e.g. Home, Work)</label>
                           <input 
                             type="text"
-                            placeholder="HOME DISPATCH"
+                            placeholder="Home Address"
                             value={newProtocolForm.name}
                             onChange={(e) => setNewProtocolForm(prev => ({ ...prev, name: e.target.value }))}
-                            className="w-full bg-zinc-900 border border-white/5 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:border-[#0F52BA]/60 transition-all font-sans"
+                            className="w-full bg-zinc-950 border border-white/10 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500"
                           />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1.5">
-                            <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Recipient Phone</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[9px] font-mono text-zinc-400 uppercase block mb-1">Recipient Phone</label>
                             <input 
                               type="tel"
                               placeholder="+233..."
                               value={newProtocolForm.phone}
                               onChange={(e) => setNewProtocolForm(prev => ({ ...prev, phone: e.target.value }))}
-                              className="w-full bg-zinc-900 border border-white/5 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:border-[#0F52BA]/60 transition-all font-sans"
+                              className="w-full bg-zinc-950 border border-white/10 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500"
                             />
                           </div>
 
-                          <div className="space-y-1.5">
-                            <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Region</label>
+                          <div>
+                            <label className="text-[9px] font-mono text-zinc-400 uppercase block mb-1">Region</label>
                             <input 
                               type="text"
                               placeholder="Greater Accra"
                               value={newProtocolForm.region}
                               onChange={(e) => setNewProtocolForm(prev => ({ ...prev, region: e.target.value }))}
-                              className="w-full bg-zinc-900 border border-white/5 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:border-[#0F52BA]/60 transition-all font-sans"
+                              className="w-full bg-zinc-950 border border-white/10 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500"
                             />
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="col-span-2 space-y-1.5">
-                            <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Address</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="col-span-2">
+                            <label className="text-[9px] font-mono text-zinc-400 uppercase block mb-1">Street Address</label>
                             <input 
                               type="text"
-                              placeholder="House 44, Oxford Street"
+                              placeholder="Oxford Street"
                               value={newProtocolForm.address}
                               onChange={(e) => setNewProtocolForm(prev => ({ ...prev, address: e.target.value }))}
-                              className="w-full bg-zinc-900 border border-white/5 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:border-[#0F52BA]/60 transition-all font-sans"
+                              className="w-full bg-zinc-950 border border-white/10 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500"
                             />
                           </div>
 
-                          <div className="space-y-1.5">
-                            <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">City</label>
+                          <div>
+                            <label className="text-[9px] font-mono text-zinc-400 uppercase block mb-1">City</label>
                             <input 
                               type="text"
                               placeholder="Osu"
                               value={newProtocolForm.city}
                               onChange={(e) => setNewProtocolForm(prev => ({ ...prev, city: e.target.value }))}
-                              className="w-full bg-zinc-900 border border-white/5 text-white rounded-xl px-3 py-2.5 text-xs outline-none focus:border-[#0F52BA]/60 transition-all font-sans"
+                              className="w-full bg-zinc-950 border border-white/10 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500"
                             />
                           </div>
                         </div>
 
                         <button 
+                          type="button"
                           disabled={generatingId !== null}
                           onClick={async () => {
                             const { name, phone, address, city, region } = newProtocolForm;
                             if (!name || !phone || !address || !city || !region) {
-                              toast.error('Strategic alert: All checkout protocol fields must be completed.');
+                              toast.error('Please fill out all address fields.');
                               return;
                             }
                             const newProtocol = {
@@ -704,16 +943,16 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
                               const updated = [...protocols, newProtocol];
                               await databaseService.saveUserLogistics(userId, updated);
                               setProtocols(updated);
-                              toast.success('Logistics protocol registered to profile!');
-                              // Clean up and immediately initialize request with it!
+                              toast.success('Address saved!');
                               handleInitializeSponsorship(selectedProductForSponsorship, newProtocol);
                             } catch (e) {
-                              toast.error('Failed to secure logistics protocol.');
+                              toast.error('Failed to save address.');
                             }
                           }}
-                          className="w-full py-3.5 bg-[#0F52BA] hover:bg-[#0B132B] text-white font-black uppercase text-[10px] tracking-widest rounded-xl transition-all min-h-[44px] cursor-pointer flex items-center justify-center gap-1 active:scale-95 shadow-lg shadow-[#0F52BA]/30"
+                          className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold uppercase text-xs tracking-wider rounded-xl transition-all cursor-pointer min-h-[44px] flex items-center justify-center gap-1.5 active:scale-95 shadow-lg"
                         >
-                          🎉 Register Protocol & Initialize
+                          <Check className="w-4 h-4" />
+                          <span>Save & Generate Sponsor Link</span>
                         </button>
                       </div>
                     </div>
@@ -725,198 +964,218 @@ const PayForMe: React.FC<PayForMeProps> = ({ rank, wishlistProducts, onCompleteA
         </div>
       )}
 
-      {/* Payment Link Modal */}
-      {paymentLink && (
-        <div className="fixed inset-0 z-[400] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in-95">
-          <div className="bg-zinc-950 border border-emerald-500/20 w-full max-w-sm rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 text-center space-y-6 shadow-[0_0_100px_rgba(16,185,129,0.1)]">
-            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
-              <Share2 className="w-6 h-6 text-emerald-500" />
-            </div>
-            <div className="space-y-1">
-              <h2 className="text-xl sm:text-2xl font-serif italic text-white">Request Created</h2>
-              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">Your payment link is ready</p>
-            </div>
-            
-            <div className="p-4 bg-black/40 rounded-xl sm:rounded-2xl border border-white/5 space-y-3">
-              <p className="text-[8px] text-emerald-400 font-black uppercase tracking-widest">Send this URL link to your sponsor</p>
-              <div className="flex items-center gap-2 p-2 bg-zinc-900 rounded-lg border border-white/5">
-                <input 
-                  readOnly 
-                  value={paymentLink.url} 
-                  className="flex-1 bg-transparent text-[9px] font-mono text-zinc-400 outline-none overflow-hidden text-ellipsis select-all"
-                />
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(paymentLink.url);
-                    toast.success('Link copied to clipboard!');
-                  }}
-                  className="px-3 py-1.5 bg-white hover:bg-emerald-500 hover:text-white text-black rounded text-[8px] font-black uppercase tracking-widest transition-all cursor-pointer"
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => setPaymentLink(null)}
-              className="w-full py-3.5 bg-white text-black hover:bg-emerald-500 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all min-h-[44px] cursor-pointer"
-            >
-              Close and view
-            </button>
-          </div>
-        </div>
+      {/* Share Modal Triggered */}
+      {sharingRequest && (
+        <PayForMeShareModal
+          existingRequest={sharingRequest}
+          onClose={() => setSharingRequest(null)}
+        />
       )}
 
-      {/* Perks Summary */}
-      <footer className="bg-zinc-950/50 border border-white/5 p-6 sm:p-8 rounded-2xl sm:rounded-[2.5rem] flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-left">
-        <div className="text-3xl shrink-0">🛡️</div>
-        <div className="space-y-1">
-          <h4 className="text-base font-serif italic text-white text-center sm:text-left">Protocol Transparency</h4>
-          <p className="text-[8px] sm:text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-relaxed text-center sm:text-left">
-            Items reserved via sponsorship remain in the global buffer for {typeof rank.wishlistRetentionDays === 'number' ? `${rank.wishlistRetentionDays} days` : 'Permanently'}.
-            <br className="hidden sm:inline" /> Contributors verify the transaction via standard securely automated digital gateway.
-          </p>
-        </div>
-      </footer>
-
-      {/* Protocol Selection Modal */}
+      {/* Dispatch Confirmation Modal */}
       {selectedPaidRequest && (
-        <div className="fixed inset-0 z-[400] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in-95">
-          <div className="bg-zinc-950 border border-emerald-500/20 w-full max-w-sm rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 text-center space-y-6 shadow-[0_0_100px_rgba(16,185,129,0.1)]">
-            
-            {selectedPaidRequest.shippingProtocol ? (
-              // CASE A: User already pre-selected a Check Out Protocol during Registration!
-              <div className="space-y-5">
-                <div className="space-y-1">
-                  <h2 className="text-xl sm:text-2xl font-serif italic text-emerald-400">Confirm Dispatch</h2>
-                  <p className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em]">Deliver sponsored item</p>
-                </div>
-                
-                <div className="p-4 bg-zinc-900 rounded-xl border border-white/5 text-left space-y-2">
-                  <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Registered Protocol Destination</p>
-                  <div>
-                    <p className="text-xs font-black text-white uppercase">{selectedPaidRequest.shippingProtocol.name}</p>
-                    <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">{selectedPaidRequest.shippingProtocol.address}, {selectedPaidRequest.shippingProtocol.city}</p>
-                    <p className="text-[9px] text-zinc-500 font-mono mt-0.5">Phone: {selectedPaidRequest.shippingProtocol.phone}</p>
-                  </div>
-                </div>
+        <div className="fixed inset-0 z-[400] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+          <div className="bg-zinc-950 border-t sm:border border-emerald-500/20 w-full max-w-sm rounded-t-[2rem] sm:rounded-[2rem] p-5 sm:p-6 text-center space-y-4 shadow-2xl animate-in slide-in-from-bottom-6 sm:zoom-in-95">
+            <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20 text-emerald-400">
+              <Truck className="w-6 h-6" />
+            </div>
 
-                <div className="flex flex-col gap-2">
-                  <button 
-                    onClick={async () => {
-                      await onCompleteAcquisition(selectedPaidRequest.items[0] as Product);
-                      await databaseService.updatePayForMeStatus(selectedPaidRequest.id, PayForMeStatus.CLAIMED);
-                      setActiveRequests(prev => prev.map(r => r.id === selectedPaidRequest.id ? { ...r, status: PayForMeStatus.CLAIMED } : r));
-                      setSelectedPaidRequest(null);
-                      toast.success('Dispatched! Delivery logistics protocol initiated.');
-                    }}
-                    className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer"
-                  >
-                    🚀 Initiate Dispatch
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      // Remove pre-selected protocol from local state to trigger the manual selection view
-                      setSelectedPaidRequest(prev => {
-                        if (!prev) return null;
-                        const copy = { ...prev };
-                        delete copy.shippingProtocol;
-                        return copy;
-                      });
-                    }}
-                    className="w-full py-2 bg-transparent text-zinc-500 hover:text-white rounded text-[8px] font-black uppercase tracking-widest transition-all cursor-pointer"
-                  >
-                    Use a different address
-                  </button>
-                </div>
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold text-white">Confirm Delivery Dispatch</h2>
+              <p className="text-[10px] font-mono text-zinc-400">Item is fully funded and ready for dispatch</p>
+            </div>
+
+            {selectedPaidRequest.shippingProtocol ? (
+              <div className="p-3.5 bg-zinc-900 rounded-xl border border-white/5 text-left space-y-1">
+                <p className="text-[9px] font-mono text-emerald-400 uppercase font-bold">Delivery Address</p>
+                <p className="text-xs font-bold text-white">{selectedPaidRequest.shippingProtocol.name}</p>
+                <p className="text-[10px] text-zinc-400">{selectedPaidRequest.shippingProtocol.address}, {selectedPaidRequest.shippingProtocol.city}</p>
+                <p className="text-[9px] font-mono text-zinc-500">Phone: {selectedPaidRequest.shippingProtocol.phone}</p>
               </div>
             ) : (
-              // CASE B: Manual/override Address Selection
-              <>
-                <div className="space-y-1">
-                  <h2 className="text-xl sm:text-2xl font-serif italic text-emerald-400">Select Delivery Option</h2>
-                  <p className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em]">Sponsor protocol finalized</p>
-                </div>
-                
-                <div className="space-y-2.5 text-left max-h-[40vh] overflow-y-auto pr-1">
-                  {protocols.length === 0 ? (
-                    <p className="text-zinc-500 text-xs text-center py-6">No saved addresses found. Please add a shipping protocol in your profile.</p>
-                  ) : (protocols.map(p => (
-                    <button 
-                      key={p.id}
-                      onClick={async () => {
-                        await onCompleteAcquisition(selectedPaidRequest.items[0] as Product);
-                        await databaseService.updatePayForMeStatus(selectedPaidRequest.id, PayForMeStatus.CLAIMED);
-                        setActiveRequests(prev => prev.map(r => r.id === selectedPaidRequest.id ? { ...r, status: PayForMeStatus.CLAIMED } : r));
-                        setSelectedPaidRequest(null);
-                        toast.success('Protocol selected. Delivery initiated!');
-                      }}
-                      className="w-full p-3.5 bg-zinc-900 border border-white/5 rounded-xl hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all text-left group cursor-pointer"
-                    >
-                      <p className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors uppercase">{p.name}</p>
-                      <p className="text-[9px] text-zinc-500 mt-1 uppercase tracking-widest truncate">{p.address}, {p.city}</p>
-                    </button>
-                  )))}
-                </div>
-              </>
+              <p className="text-xs text-zinc-400">Dispatching to default registered user address.</p>
             )}
 
-            <button 
-              onClick={() => setSelectedPaidRequest(null)}
-              className="w-full py-3.5 bg-white/5 text-white hover:bg-white/10 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] transition-all min-h-[44px] cursor-pointer"
-            >
-              Cancel
-            </button>
+            <div className="space-y-2 pt-2">
+              <button 
+                type="button"
+                onClick={async () => {
+                  const firstItem = (Array.isArray(selectedPaidRequest.items) && selectedPaidRequest.items.length > 0)
+                    ? selectedPaidRequest.items[0]
+                    : (selectedPaidRequest.items as any);
+                  if (firstItem) {
+                    await onCompleteAcquisition(firstItem as Product);
+                  }
+                  await databaseService.updatePayForMeStatus(selectedPaidRequest.id, PayForMeStatus.CLAIMED);
+                  setActiveRequests(prev => (Array.isArray(prev) ? prev : []).map(r => r.id === selectedPaidRequest.id ? { ...r, status: PayForMeStatus.CLAIMED } : r));
+                  setSelectedPaidRequest(null);
+                  toast.success('Order confirmed! Package is queued for courier pickup.');
+                }}
+                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer min-h-[44px] shadow-lg active:scale-95"
+              >
+                Confirm Dispatch
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => setSelectedPaidRequest(null)}
+                className="w-full py-2.5 bg-zinc-900 text-zinc-400 hover:text-white rounded-xl text-xs font-mono uppercase tracking-wider transition-all cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Rules Info Modal */}
       {showRules && (
-        <div className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-zinc-950 border border-[#0F52BA]/40 w-full max-w-sm rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 text-center space-y-6 shadow-[0_0_100px_rgba(15,82,186,0.2)]">
-            <div className="w-16 h-16 bg-[#0F52BA]/20 rounded-full flex items-center justify-center mx-auto border border-[#0F52BA]/30">
-              <AlertCircle className="w-6 h-6 text-[#C5A880]" />
+        <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+          <div className="bg-zinc-950 border-t sm:border border-white/10 w-full max-w-sm rounded-t-[2rem] sm:rounded-[2rem] p-5 sm:p-6 text-center space-y-4 shadow-2xl animate-in slide-in-from-bottom-6 sm:zoom-in-95">
+            <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto border border-blue-500/20 text-blue-400">
+              <Shield className="w-6 h-6" />
             </div>
             
             <div className="space-y-1">
-              <h2 className="text-xl sm:text-2xl font-serif italic text-white">Pay For Me Rules</h2>
-              <p className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em]">Uplink guidelines</p>
+              <h2 className="text-lg font-bold text-white">Pay For Me Guidelines</h2>
+              <p className="text-[10px] font-mono text-zinc-400">Safe peer gifting protocols</p>
             </div>
 
-            <div className="space-y-4 text-left p-4 sm:p-5 bg-white/5 rounded-xl border border-white/5">
-              <div className="flex gap-3">
-                <div className="w-5 h-5 rounded bg-[#0F52BA]/30 flex items-center justify-center shrink-0 text-[10px] font-black text-[#C5A880]">01</div>
-                <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">
-                  <span className="text-white font-bold">3-Week Expiration:</span> If a sponsorship request is not completed within 3 weeks, any amount paid will be converted into <span className="text-[#C5A880] font-bold">Store Credit</span> for your next purchase.
+            <div className="space-y-3 text-left p-3.5 bg-zinc-900 rounded-xl border border-white/5">
+              <div className="flex gap-2.5">
+                <span className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center shrink-0 text-[10px] font-mono font-bold text-blue-300">1</span>
+                <p className="text-[11px] text-zinc-300 leading-relaxed">
+                  <strong className="text-white">3-Week Buffer:</strong> If a request isn't fulfilled within 21 days, all contributed funds convert automatically to <span className="text-[#C5A880] font-bold">Store Credit</span> in your wallet.
                 </p>
               </div>
-              <div className="flex gap-3">
-                <div className="w-5 h-5 rounded bg-[#0F52BA]/30 flex items-center justify-center shrink-0 text-[10px] font-black text-[#C5A880]">02</div>
-                <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">
-                  <span className="text-white font-bold">Overpayment Protocol:</span> Any surplus amount paid exceeding the item configuration is converted automatically into <span className="text-[#C5A880] font-bold">Store Credit</span>.
+              <div className="flex gap-2.5">
+                <span className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center shrink-0 text-[10px] font-mono font-bold text-blue-300">2</span>
+                <p className="text-[11px] text-zinc-300 leading-relaxed">
+                  <strong className="text-white">Surplus Protection:</strong> Any surplus amount is credited back to your account immediately.
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 pt-2">
+            <div className="space-y-2 pt-1">
               <button 
+                type="button"
                 onClick={() => setShowRules(false)}
-                className="w-full py-3.5 bg-[#0F52BA] hover:bg-[#0B132B] text-white rounded-xl text-[9px] font-black uppercase tracking-[0.15em] transition-all shadow-xl min-h-[44px] cursor-pointer"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all min-h-[44px] cursor-pointer active:scale-95"
               >
-                I Understand
+                Got It
               </button>
               <button 
+                type="button"
                 onClick={() => {
                   localStorage.setItem('cc-hide-pfm-rules', 'true');
                   setShowRules(false);
                 }}
-                className="w-full py-2 bg-transparent text-zinc-500 hover:text-white rounded text-[8px] font-black uppercase tracking-[0.15em] transition-all min-h-[36px] cursor-pointer"
+                className="text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors py-1 cursor-pointer"
               >
                 Don't show this again
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tier Slots Allowance Modal */}
+      {showTierSlotsModal && (
+        <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+          <div className="bg-zinc-950 border-t sm:border border-amber-500/20 w-full max-w-md rounded-t-[2rem] sm:rounded-[2rem] p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-6 sm:zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center border border-amber-500/20 text-amber-300">
+                  <Crown className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white">Tier Slot Capacity</h2>
+                  <p className="text-[10px] font-mono text-zinc-400">Concurrent active sponsorship limits</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowTierSlotsModal(false)}
+                className="w-7 h-7 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Current Status Pill */}
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between">
+              <div>
+                <p className="text-[8px] font-mono uppercase text-amber-300 tracking-wider">Your Current Rank</p>
+                <p className="text-sm font-bold text-white uppercase">{effectiveRank.tier} Tier</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[8px] font-mono uppercase text-amber-300 tracking-wider">Slots Active</p>
+                <p className="text-sm font-mono font-bold text-white">{activeCount} / {effectiveRank.payForMeSlots}</p>
+              </div>
+            </div>
+
+            {/* Tier Breakdown */}
+            <div className="space-y-2">
+              <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-wider">Progression Ladder</p>
+              
+              <div className="space-y-1.5">
+                {Object.entries(RANK_BENEFITS).map(([tierName, benefits]) => {
+                  const isCurrent = effectiveRank.tier === tierName;
+                  const threshold = (RANK_THRESHOLDS as Record<string, number>)[tierName] || 0;
+                  
+                  return (
+                    <div 
+                      key={tierName}
+                      className={`p-3 rounded-xl border transition-all flex items-center justify-between ${
+                        isCurrent 
+                          ? 'bg-amber-500/10 border-amber-500/40' 
+                          : 'bg-zinc-900 border-white/5'
+                      }`}
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-xs font-bold uppercase ${isCurrent ? 'text-amber-300' : 'text-white'}`}>
+                            {tierName}
+                          </span>
+                          {isCurrent && (
+                            <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-amber-400 text-black uppercase">
+                              Current
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[9px] text-zinc-400 font-mono">
+                          {threshold > 0 ? `${threshold.toLocaleString()} REP` : 'Starter Rank'}
+                        </p>
+                      </div>
+
+                      <span className={`text-xs font-mono font-bold px-2 py-1 rounded-lg ${
+                        isCurrent 
+                          ? 'bg-amber-400 text-black' 
+                          : 'bg-zinc-800 text-zinc-300'
+                      }`}>
+                        {benefits.payForMeSlots} {benefits.payForMeSlots === 1 ? 'Slot' : 'Slots'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="p-3 bg-zinc-900 rounded-xl border border-white/5 text-[10px] text-zinc-400 leading-relaxed space-y-1">
+              <p className="text-white font-bold flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Unlock More Slots:
+              </p>
+              <p>
+                Earn REP points by making purchases, trying on fits, and rating drops to level up your rank and unlock up to 15 concurrent sponsorship slots.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowTierSlotsModal(false)}
+              className="w-full py-3 bg-white text-zinc-950 hover:bg-zinc-200 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer min-h-[44px]"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

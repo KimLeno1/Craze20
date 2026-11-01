@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Product, UserStats, ViewState, UserPreferences, CategoryInfo } from '../types';
 import { CATEGORY_GROUPS } from '../constants';
 import { databaseService } from '../services/databaseService';
-import { Search, Zap, Camera, Clock, Star, TrendingUp, ShieldCheck, Truck, Lock, Flame, Download, Sparkles, SlidersHorizontal, ChevronRight, ChevronLeft, User, ShoppingCart, Tag, LayoutGrid, Check, Gift, Copy, Award, AlertCircle, RefreshCw, Shuffle, ArrowRight } from 'lucide-react';
+import { Search, Zap, Camera, Clock, Star, TrendingUp, ShieldCheck, Truck, Lock, Flame, Download, Sparkles, SlidersHorizontal, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, User, ShoppingCart, Tag, LayoutGrid, Check, Gift, Copy, Award, AlertCircle, RefreshCw, Shuffle, ArrowRight, Dices } from 'lucide-react';
 import { Skeleton, ProductGridSkeleton } from './Skeleton';
 import ProductCard from './ProductCard';
 import SectionErrorBoundary from './SectionErrorBoundary';
 import { matchesCategory } from '../lib/categoryUtils';
 import { HeroQuoteSlide, getRandomSessionHeroSlides } from '../data/heroQuotes';
+import { toast } from 'sonner';
 
 interface HomeLobbyProps {
   userId: string;
@@ -56,7 +57,18 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
 }) => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeFilter, setActiveFilter] = useState('All');
-  const [activeSort, setActiveSort] = useState<'time' | 'recommended'>('recommended');
+  const [activeSort, setActiveSort] = useState<'random' | 'recommended' | 'time' | 'price_asc' | 'price_desc'>('random');
+  const [shuffleSeed, setShuffleSeed] = useState<number>(() => Math.floor(Math.random() * 1000000));
+
+  // Automatically randomize product mix on every home page load
+  useEffect(() => {
+    setShuffleSeed(Date.now() + Math.floor(Math.random() * 1000000));
+  }, []);
+  const [showSortDropdown, setShowSortDropdown] = useState<boolean>(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState<number>(8);
+  const [infiniteScrollEnabled, setInfiniteScrollEnabled] = useState<boolean>(false);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
   
   // Price Filter states
   const [minPrice, setMinPrice] = useState<string>('');
@@ -95,19 +107,39 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
     setCurrentSlide(0);
   };
 
+  const handleReshuffleProducts = useCallback(() => {
+    setActiveSort('random');
+    setShuffleSeed(Date.now() + Math.floor(Math.random() * 10000));
+    toast.success('Catalog feed shuffled at random!');
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (priceDropdownRef.current && !priceDropdownRef.current.contains(event.target as Node)) {
         setShowPriceInputs(false);
       }
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setShowSortDropdown(false);
+      }
     };
-    if (showPriceInputs) {
+    if (showPriceInputs || showSortDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showPriceInputs]);
+  }, [showPriceInputs, showSortDropdown]);
+
+  const getSortLabel = (sortMode: 'random' | 'recommended' | 'time' | 'price_asc' | 'price_desc') => {
+    switch (sortMode) {
+      case 'random': return 'Random Mix 🎲';
+      case 'recommended': return 'Recommended ⭐';
+      case 'time': return 'Newest Drops 🕒';
+      case 'price_asc': return 'Price: Low 💲';
+      case 'price_desc': return 'Price: High 💎';
+      default: return 'Random Mix 🎲';
+    }
+  };
 
   const getPriceFilterLabel = () => {
     if (activePricePreset === 'under150') return 'Under $150';
@@ -125,7 +157,7 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
   // Filter products based on selected parameters
   const filteredProducts = React.useMemo(() => {
     let filtered = activeCategory === 'All' 
-      ? products 
+      ? [...products] 
       : products.filter(p => matchesCategory(p, activeCategory, categories));
 
     // Apply active filters (Deals, Low Stock, etc.)
@@ -134,7 +166,7 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
     } else if (activeFilter === 'Low Stock') {
       filtered = filtered.filter(p => p.stockCount > 0 && p.stockCount < 5);
     } else if (activeFilter === 'Trending') {
-      filtered = [...filtered].sort(() => 0.5 - Math.random());
+      filtered = [...filtered].sort((a, b) => ((b.likes || 0) + (b.isHallOfFame ? 50 : 0) + (b.viewers || 0)) - ((a.likes || 0) + (a.isHallOfFame ? 50 : 0) + (a.viewers || 0)));
     }
 
     // Apply Price Filter
@@ -156,28 +188,69 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
     }
 
     // Apply Sorting logic
-    if (activeSort === 'time') {
-      filtered = [...filtered].sort((a, b) => {
+    if (activeSort === 'random') {
+      const arr = [...filtered];
+      // Deterministic Fisher-Yates pseudo-random permutation based on shuffleSeed
+      for (let i = arr.length - 1; i > 0; i--) {
+        const pseudoVal = Math.abs(Math.sin(shuffleSeed + i * 997 + (arr[i]?.name?.length || i)));
+        const j = Math.floor(pseudoVal * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    } else if (activeSort === 'time') {
+      return [...filtered].sort((a, b) => {
         const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return timeB - timeA;
       });
+    } else if (activeSort === 'price_asc') {
+      return [...filtered].sort((a, b) => a.price - b.price);
+    } else if (activeSort === 'price_desc') {
+      return [...filtered].sort((a, b) => b.price - a.price);
     } else {
       // Recommended logic
       if (userPrefs && userPrefs.preferredCategories && userPrefs.preferredCategories.length > 0) {
         filtered = filtered.filter(p => userPrefs.preferredCategories.some(cat => CATEGORY_GROUPS[cat]?.includes(p.category)));
-        filtered = [...filtered].sort((a, b) => {
-          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return timeB - timeA;
-        });
-      } else {
-        filtered = [...filtered].sort(() => 0.5 - Math.random());
       }
+      return [...filtered].sort((a, b) => {
+        const scoreA = (a.isHallOfFame ? 100 : 0) + (a.likes || 0) * 2 + (a.isNew ? 20 : 0);
+        const scoreB = (b.isHallOfFame ? 100 : 0) + (b.likes || 0) * 2 + (b.isNew ? 20 : 0);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
+      });
     }
-    
-    return filtered;
-  }, [products, activeCategory, categories, activeFilter, userPrefs, activeSort, minPrice, maxPrice, activePricePreset]);
+  }, [products, activeCategory, categories, activeFilter, userPrefs, activeSort, minPrice, maxPrice, activePricePreset, shuffleSeed]);
+
+  // Reset pagination when category, search, or filters change
+  useEffect(() => {
+    setVisibleCount(8);
+    setInfiniteScrollEnabled(false);
+  }, [activeCategory, activeFilter, activeSort, activePricePreset, minPrice, maxPrice]);
+
+  // Infinite Scroll Trigger when user scrolls down
+  useEffect(() => {
+    if (!infiniteScrollEnabled) return;
+    if (visibleCount >= filteredProducts.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((prev) => Math.min(prev + 8, filteredProducts.length));
+      }
+    }, { threshold: 0.1, rootMargin: '200px' });
+
+    const currentSentinel = loadMoreSentinelRef.current;
+    if (currentSentinel) {
+      observer.observe(currentSentinel);
+    }
+
+    return () => {
+      if (currentSentinel) {
+        observer.unobserve(currentSentinel);
+      }
+    };
+  }, [infiniteScrollEnabled, visibleCount, filteredProducts.length]);
 
   // Cyber Blueprint Vector Silhouettes mapping
   const renderCyberBlueprint = (category: string) => {
@@ -239,7 +312,7 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
             <div 
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
-              className="mx-4 mt-6 relative rounded-[2.5rem] overflow-hidden backdrop-blur-2xl glass-sapphire-70 border border-[#0F52BA]/40 p-2 sm:p-4 aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9] md:h-[480px] w-[calc(100%-2rem)] max-w-7xl mx-auto flex items-center justify-center shadow-2xl group z-10 select-none"
+              className="mx-4 mt-2 sm:mt-3 relative rounded-[2.5rem] overflow-hidden bg-[#0B132B] border border-[#1E293B] p-2 sm:p-4 aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9] md:h-[480px] w-[calc(100%-2rem)] max-w-7xl mx-auto flex items-center justify-center shadow-2xl group z-10 select-none"
             >
               {/* Soft liquid layout waves and colors */}
               <div className="absolute inset-0 bg-gradient-to-tr from-[#0F52BA]/20 to-[#4169E1]/10 z-0"></div>
@@ -276,7 +349,7 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
                 {/* Quick Shuffle 4 Button */}
                 <button
                   onClick={handleShuffleHero}
-                  className="p-1.5 sm:px-2.5 sm:py-1 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white/90 hover:text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-md active:scale-95"
+                  className="p-1.5 sm:px-2.5 sm:py-1 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white/90 hover:text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-md active:scale-95"
                   title="Pick 4 new random quotes"
                 >
                   <Shuffle className="w-3 h-3 text-[#C5A880]" />
@@ -328,7 +401,7 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
               {/* Left Arrow */}
               <button 
                 onClick={() => setCurrentSlide(prev => prev === 0 ? heroSlides.length - 1 : prev - 1)}
-                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-300 z-30 opacity-80 sm:opacity-0 group-hover:opacity-100 active:scale-90 shadow-lg"
+                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/60 border border-white/20 text-white hover:bg-black/80 transition-all duration-300 z-30 opacity-80 sm:opacity-0 group-hover:opacity-100 active:scale-90 shadow-lg"
                 title="Previous Quote"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -337,7 +410,7 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
               {/* Right Arrow */}
               <button 
                 onClick={() => setCurrentSlide(prev => (prev + 1) % heroSlides.length)}
-                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-300 z-30 opacity-80 sm:opacity-0 group-hover:opacity-100 active:scale-90 shadow-lg"
+                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/60 border border-white/20 text-white hover:bg-black/80 transition-all duration-300 z-30 opacity-80 sm:opacity-0 group-hover:opacity-100 active:scale-90 shadow-lg"
                 title="Next Quote"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -347,28 +420,23 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
         })()}
       </SectionErrorBoundary>
 
-      {/* Sort and Filter Panel */}
-      <div className="px-4 mt-8 flex z-10 relative">
-        <div className="flex-1 flex items-center justify-between gap-3">
-             <button
-               onClick={() => {
-                 /* Sort Toggle */
-               }}
-               className="px-6 py-2.5 bg-white/70 backdrop-blur-md text-[#0F52BA] rounded-full text-[10px] font-black uppercase tracking-widest border border-[#0F52BA]/25 hover:bg-white hover:border-[#C5A880]/60 hover:shadow-[0_4px_16px_rgba(15,82,186,0.1)] transition-all shadow-sm"
-             >
-               Sort
-             </button>
-             
-             <button
-               onClick={() => setShowPriceInputs(!showPriceInputs)}
-               className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all shadow-sm ${
-                 showPriceInputs || activePricePreset !== 'all'
-                   ? 'bg-gradient-to-r from-[#0F52BA] to-[#09285E] text-white border-[#C5A880]/50 shadow-[0_4px_16px_rgba(15,82,186,0.25)]'
-                   : 'bg-white/70 backdrop-blur-md text-[#0F52BA] border-[#0F52BA]/25 hover:bg-white hover:border-[#C5A880]/60'
-               }`}
-             >
-               Filter
-             </button>
+      {/* Filter Panel */}
+      <div className="px-4 mt-8 flex justify-end z-10 relative">
+        <div className="flex items-center gap-2.5">
+          {/* Filter Toggle Button */}
+          <button
+            onClick={() => {
+              setShowPriceInputs(!showPriceInputs);
+              setShowSortDropdown(false);
+            }}
+            className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all shadow-xs cursor-pointer ${
+              showPriceInputs || activePricePreset !== 'all'
+                ? 'bg-[#0F52BA] text-white border-[#0F52BA] shadow-sm'
+                : 'bg-white text-[#0F52BA] border-zinc-200 hover:border-[#0F52BA]/40'
+            }`}
+          >
+            Filter
+          </button>
         </div>
       </div>
       
@@ -377,7 +445,7 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
         <div 
           ref={priceDropdownRef}
           onClick={(e) => e.stopPropagation()}
-          className="absolute right-4 left-4 md:left-auto md:right-4 top-[560px] z-[100] bg-white/95 backdrop-blur-md border border-[#0F52BA]/40 rounded-2xl p-4 shadow-[0_20px_40px_rgba(0,0,0,0.08)] min-w-[280px] sm:min-w-[320px] animate-in fade-in slide-in-from-top-2 duration-200 text-zinc-800"
+          className="absolute right-4 left-4 md:left-auto md:right-4 top-[560px] z-[100] bg-white border border-zinc-200 rounded-2xl p-4 shadow-xl min-w-[280px] sm:min-w-[320px] animate-in fade-in slide-in-from-top-2 duration-200 text-zinc-800"
         >
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-100">
             <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Filter By Price</span>
@@ -483,9 +551,19 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
               <span className="w-2 h-2 bg-[#C5A880] rounded-full animate-ping shadow-[0_0_8px_#C5A880]"></span>
               FEATURED PRODUCTS
             </span>
-            <span className="text-[9px] font-mono text-[#C5A880] tracking-wider font-semibold">
-              {isInitializing ? 'LOADING PRODUCTS...' : `${filteredProducts.length} ITEMS AVAILABLE`}
-            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleReshuffleProducts}
+                className="text-[9px] font-mono text-blue-600 hover:text-blue-700 tracking-wider font-bold flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/60 active:scale-95 transition-all cursor-pointer"
+                title="Shuffle products at random"
+              >
+                <Shuffle className="w-2.5 h-2.5" />
+                <span>Shuffle Feed</span>
+              </button>
+              <span className="text-[9px] font-mono text-[#C5A880] tracking-wider font-semibold">
+                {isInitializing ? 'LOADING PRODUCTS...' : `${filteredProducts.length} ITEMS AVAILABLE`}
+              </span>
+            </div>
           </div>
 
           {isInitializing ? (
@@ -519,38 +597,71 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
               <p className="text-xs font-medium text-zinc-400">No drops matching your current filter.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
-              {filteredProducts.slice(0, 8).map((p) => (
-                <ProductCard 
-                  key={p.id}
-                  product={p}
-                  onClick={onProductClick}
-                  onAddToCart={onAddToCart}
-                  onToggleWishlist={onToggleWishlist}
-                  isWishlisted={wishlist.includes(p.id)}
-                  saleTimerEnd={p.price < p.originalPrice ? limitedOfferEnd : null}
-                  onQuickBuy={onQuickBuy}
-                  onToggleCompare={onToggleCompare}
-                  isComparing={comparisonList.some(item => item.id === p.id)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
+                {filteredProducts.slice(0, visibleCount).map((p) => (
+                  <ProductCard 
+                    key={p.id}
+                    product={p}
+                    onClick={onProductClick}
+                    onAddToCart={onAddToCart}
+                    onToggleWishlist={onToggleWishlist}
+                    isWishlisted={wishlist.includes(p.id)}
+                    saleTimerEnd={p.price < p.originalPrice ? limitedOfferEnd : null}
+                    onQuickBuy={onQuickBuy}
+                    onToggleCompare={onToggleCompare}
+                    isComparing={comparisonList.some(item => item.id === p.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Infinite Scroll and Pagination Control */}
+              {filteredProducts.length > 8 && (
+                <div className="mt-8 flex flex-col items-center justify-center gap-3">
+                  {!infiniteScrollEnabled && visibleCount < filteredProducts.length ? (
+                    <button
+                      id="show-more-products-btn"
+                      onClick={() => {
+                        setInfiniteScrollEnabled(true);
+                        setVisibleCount((prev) => Math.min(prev + 8, filteredProducts.length));
+                      }}
+                      className="px-8 py-3.5 bg-gradient-to-r from-[#0F52BA] to-[#0B132B] hover:from-blue-600 hover:to-[#0F52BA] text-white rounded-full text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-[0_4px_16px_rgba(15,82,186,0.3)] flex items-center gap-2 cursor-pointer border border-[#C5A880]/30 group"
+                    >
+                      <span>Show More Products</span>
+                      <ChevronDown className="w-4 h-4 text-[#E8D3B0] group-hover:translate-y-0.5 transition-transform" />
+                    </button>
+                  ) : null}
+
+                  {/* Infinite scroll load sentinel */}
+                  {infiniteScrollEnabled && visibleCount < filteredProducts.length && (
+                    <div ref={loadMoreSentinelRef} className="py-6 flex items-center justify-center gap-2 text-zinc-400">
+                      <div className="w-4 h-4 border-2 border-[#0F52BA] border-t-transparent rounded-full animate-spin" />
+                      <span className="text-[11px] font-mono tracking-wider">Loading more pieces...</span>
+                    </div>
+                  )}
+
+                  <span className="text-[10px] font-mono text-zinc-500 tracking-wider">
+                    Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} items
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
       </SectionErrorBoundary>
 
       {/* Trust Badges & Referral Program overlay */}
       <div className="px-4 mt-8 grid grid-cols-2 gap-3 z-10 relative">
-        <div className="p-4 rounded-[1.75rem] glass-card-light border border-[#0F52BA]/20 hover:border-[#C5A880]/60 flex flex-col gap-2 shadow-[0_8px_24px_rgba(15,82,186,0.06)] hover:shadow-[0_12px_32px_rgba(197,168,128,0.15)] transition-all duration-300">
-          <div className="w-9 h-9 rounded-xl bg-[#0F52BA]/10 flex items-center justify-center border border-[#0F52BA]/20">
+        <div className="p-4 rounded-[1.75rem] bg-white border border-zinc-200 hover:border-[#0F52BA]/40 flex flex-col gap-2 shadow-xs hover:shadow-md transition-all duration-300">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100">
             <Truck className="w-4 h-4 text-[#0F52BA]" />
           </div>
           <h4 className="font-bold text-xs text-zinc-900 tracking-tight">Fast Delivery</h4>
           <p className="text-[10px] text-zinc-500 leading-relaxed">Quick and safe delivery with package tracking included.</p>
         </div>
-        <div className="p-4 rounded-[1.75rem] glass-card-light border border-[#0F52BA]/20 hover:border-[#C5A880]/60 flex flex-col gap-2 shadow-[0_8px_24px_rgba(15,82,186,0.06)] hover:shadow-[0_12px_32px_rgba(197,168,128,0.15)] transition-all duration-300">
-          <div className="w-9 h-9 rounded-xl bg-[#C5A880]/15 flex items-center justify-center border border-[#C5A880]/30">
-            <ShieldCheck className="w-4 h-4 text-[#967447]" />
+        <div className="p-4 rounded-[1.75rem] bg-white border border-zinc-200 hover:border-[#0F52BA]/40 flex flex-col gap-2 shadow-xs hover:shadow-md transition-all duration-300">
+          <div className="w-9 h-9 rounded-xl bg-[#FFFDF9] flex items-center justify-center border border-[#E8D3B0]">
+            <ShieldCheck className="w-4 h-4 text-[#8D6638]" />
           </div>
           <h4 className="font-bold text-xs text-zinc-900 tracking-tight">100% Authentic</h4>
           <p className="text-[10px] text-zinc-500 leading-relaxed">Genuine clothes and accessories with guaranteed quality.</p>
@@ -559,18 +670,18 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
 
             {/* Refer & Earn Modal */}
       {showReferModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-300">
           <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-[2.5rem] p-6 shadow-2xl space-y-6">
             
             {/* Modal header */}
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-blue-600" />
-                <span className="text-xs font-black uppercase tracking-widest text-blue-600 font-mono">REFER & EARN</span>
+                <Gift className="w-5 h-5 text-[#967447]" />
+                <span className="text-xs font-black uppercase tracking-widest text-[#967447] font-mono">REFER & EARN</span>
               </div>
               <button 
                 onClick={() => setShowReferModal(false)}
-                className="w-8 h-8 rounded-full border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-950 hover:bg-zinc-50 transition-all"
+                className="w-8 h-8 rounded-full border border-zinc-200 bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 transition-all"
               >
                 ✕
               </button>
@@ -578,24 +689,24 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
 
             {/* Illustration/Description */}
             <div className="text-center space-y-3">
-              <div className="w-16 h-16 rounded-2xl bg-blue-600/10 border border-blue-600/20 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(37,99,235,0.15)]">
-                <Award className="w-8 h-8 text-blue-600 animate-pulse" />
+              <div className="w-16 h-16 rounded-2xl bg-[#0F52BA]/10 border border-[#0F52BA]/20 flex items-center justify-center mx-auto shadow-[0_4px_16px_rgba(15,82,186,0.1)]">
+                <Award className="w-8 h-8 text-[#0F52BA]" />
               </div>
               <h3 className="text-lg font-serif italic text-zinc-950 font-bold">Expand the Syndicate</h3>
-              <p className="text-xs text-zinc-500 max-w-xs mx-auto">
-                Invite fellow fashion archivers. They receive <strong className="text-zinc-950">10% off</strong> their first synergy checkout, and you earn <strong className="text-blue-600">$15 store credit</strong>.
+              <p className="text-xs text-zinc-600 max-w-xs mx-auto">
+                Invite fellow fashion archivers. They receive <strong className="text-zinc-950">10% off</strong> their first synergy checkout, and you earn <strong className="text-[#0F52BA] font-black">$15 store credit</strong>.
               </p>
             </div>
 
             {/* Referral Link Copy Section */}
             <div className="space-y-2">
-              <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400 font-mono">Your Direct Link</span>
-              <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-100 rounded-2xl p-2.5">
+              <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 font-mono">Your Direct Link</span>
+              <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-2xl p-2.5">
                 <input 
                   type="text" 
                   readOnly 
                   value={`https://closetkraze.com/join?ref=${userHandle || 'Archiver'}`} 
-                  className="flex-1 bg-transparent border-none text-xs text-zinc-500 font-mono focus:outline-none"
+                  className="flex-1 bg-transparent border-none text-xs text-zinc-800 font-mono focus:outline-none"
                 />
                 <button 
                   onClick={() => {
@@ -606,7 +717,7 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
                   className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                     referralCopied 
                       ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
-                      : 'bg-zinc-950 text-white hover:bg-blue-600 shadow-[0_4px_12px_rgba(0,0,0,0.1)]'
+                      : 'bg-zinc-950 text-white hover:bg-[#0F52BA] shadow-[0_4px_12px_rgba(0,0,0,0.1)]'
                   }`}
                 >
                   {referralCopied ? 'COPIED' : 'COPY'}
@@ -615,14 +726,14 @@ const HomeLobby: React.FC<HomeLobbyProps> = ({
             </div>
 
             {/* Referral Stats Grid */}
-            <div className="grid grid-cols-2 gap-3 bg-zinc-50 border border-zinc-100 rounded-2xl p-4">
+            <div className="grid grid-cols-2 gap-3 bg-zinc-50 border border-zinc-200/80 rounded-2xl p-4">
               <div className="text-center">
-                <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400 font-mono block">Invited Archivers</span>
+                <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 font-mono block">Invited Archivers</span>
                 <span className="text-xl font-mono font-black text-zinc-950 block mt-1">3</span>
               </div>
-              <div className="text-center border-l border-zinc-100">
-                <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400 font-mono block">Store Credit Earned</span>
-                <span className="text-xl font-mono font-black text-emerald-500 block mt-1">$45.00</span>
+              <div className="text-center border-l border-zinc-200">
+                <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 font-mono block">Store Credit Earned</span>
+                <span className="text-xl font-mono font-black text-emerald-600 block mt-1">$45.00</span>
               </div>
             </div>
             

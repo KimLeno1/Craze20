@@ -29,6 +29,7 @@ import categoriesRouter from './api/categories.js';
 import aiRouter from './api/ai.js';
 import reviewsRouter from './api/reviews.js';
 import referralsRouter, { generateReferralCode } from './api/referrals.js';
+import { initReferralLedgerTable } from './api/referralBlockchain.js';
 import bundlesRouter, { initBundlesTable } from './api/bundles.js';
 
 const __filename_resolved = typeof __filename !== 'undefined' ? __filename : '';
@@ -75,11 +76,16 @@ async function initializeDatabase() {
   let sqliteDb: any;
   try {
     sqliteDb = new Database(dbPath);
-    // Enable auto_vacuum to reduce database size automatically
-    sqliteDb.pragma('auto_vacuum = FULL');
-    // Run a manual VACUUM on startup to reclaim space
-    sqliteDb.exec('VACUUM;');
-    console.log('Database vacuumed successfully');
+    // Ultra-fast Write-Ahead Logging mode for non-blocking concurrent reads & writes
+    sqliteDb.pragma('journal_mode = WAL');
+    sqliteDb.pragma('synchronous = NORMAL');
+    sqliteDb.pragma('cache_size = -64000'); // 64MB RAM page cache
+    sqliteDb.pragma('temp_store = MEMORY'); // Keep temporary tables and sorts in RAM
+    sqliteDb.pragma('mmap_size = 268435456'); // 256MB zero-copy memory mapped I/O
+    sqliteDb.pragma('busy_timeout = 5000'); // Prevent SQLITE_BUSY under load
+    sqliteDb.pragma('auto_vacuum = INCREMENTAL');
+    sqliteDb.pragma('optimize');
+    console.log('Database performance pragmas configured successfully (WAL mode enabled)');
   } catch (error: any) {
     if (error && (error.code === 'SQLITE_CORRUPT' || String(error).includes('corrupt') || String(error).includes('CORRUPT'))) {
       console.warn("SQLite database is corrupted. Deleting and recreating...", error);
@@ -91,7 +97,12 @@ async function initializeDatabase() {
         console.error("Failed to delete corrupt database.sqlite file:", e);
       }
       sqliteDb = new Database(dbPath);
-      sqliteDb.pragma('auto_vacuum = FULL');
+      sqliteDb.pragma('journal_mode = WAL');
+      sqliteDb.pragma('synchronous = NORMAL');
+      sqliteDb.pragma('cache_size = -64000');
+      sqliteDb.pragma('temp_store = MEMORY');
+      sqliteDb.pragma('mmap_size = 268435456');
+      sqliteDb.pragma('busy_timeout = 5000');
     } else {
       throw error;
     }
@@ -186,6 +197,23 @@ async function initializeDatabase() {
       console.log("Added video to products table");
     } catch (e) {
       // Ignored if column already exists
+    }
+
+    try {
+      await db.exec("ALTER TABLE products ADD COLUMN slug TEXT");
+      console.log("Added slug to products table");
+    } catch (e) {
+      // Ignored if column already exists
+    }
+
+    try {
+      const prodsWithoutSlug = await db.all("SELECT id, name FROM products WHERE slug IS NULL OR slug = ''");
+      for (const p of prodsWithoutSlug) {
+        const slug = (p.name || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        await db.run("UPDATE products SET slug = ? WHERE id = ?", [slug, p.id]);
+      }
+    } catch (e) {
+      // Ignored if backfill fails
     }
 
     try {
@@ -289,10 +317,16 @@ async function initializeDatabase() {
         userId VARCHAR(255),
         userHandle VARCHAR(255),
         text TEXT,
+        imageUrl TEXT,
         timestamp TEXT,
         reports INT DEFAULT 0
       )`);
-      console.log("Created group_messages table");
+      try {
+        await db.exec('ALTER TABLE group_messages ADD COLUMN imageUrl TEXT');
+      } catch (e) {
+        // column already exists
+      }
+      console.log("Created/verified group_messages table");
     } catch (e) {
       console.error("Error creating group_messages table:", e);
     }
@@ -300,8 +334,9 @@ async function initializeDatabase() {
     try {
       await db.exec("CREATE TABLE IF NOT EXISTS referrals (id VARCHAR(255) PRIMARY KEY, referrerId VARCHAR(255) NOT NULL, refereeId VARCHAR(255), referredId VARCHAR(255), code VARCHAR(255), status VARCHAR(255) DEFAULT 'pending', refereeOrderId VARCHAR(255), rewardAmount DOUBLE DEFAULT 20, createdAt TEXT, completedAt TEXT)");
       console.log("Created/verified referrals table");
+      await initReferralLedgerTable(db);
     } catch (e) {
-      console.error("Error creating referrals table:", e);
+      console.error("Error creating referrals table or ledger:", e);
     }
 
     const userRefColumns = [
@@ -615,6 +650,42 @@ async function initializeDatabase() {
     }
 
     await initBundlesTable();
+
+    // High-performance database secondary indexes to prevent full table scans
+    const perfIndexes = [
+      "CREATE INDEX IF NOT EXISTS idx_products_categoryId ON products(categoryId)",
+      "CREATE INDEX IF NOT EXISTS idx_products_category ON products(category)",
+      "CREATE INDEX IF NOT EXISTS idx_products_inStock ON products(inStock)",
+      "CREATE INDEX IF NOT EXISTS idx_products_createdAt ON products(createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_products_supplierId ON products(supplierId)",
+      "CREATE INDEX IF NOT EXISTS idx_orders_userId ON orders(userId)",
+      "CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)",
+      "CREATE INDEX IF NOT EXISTS idx_orders_timestamp ON orders(timestamp)",
+      "CREATE INDEX IF NOT EXISTS idx_referrals_referrerId ON referrals(referrerId)",
+      "CREATE INDEX IF NOT EXISTS idx_referrals_refereeId ON referrals(refereeId)",
+      "CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(code)",
+      "CREATE INDEX IF NOT EXISTS idx_referral_ledger_userId ON referral_ledger(userId)",
+      "CREATE INDEX IF NOT EXISTS idx_social_posts_userId ON social_posts(userId)",
+      "CREATE INDEX IF NOT EXISTS idx_social_posts_weekId ON social_posts(weekId)",
+      "CREATE INDEX IF NOT EXISTS idx_social_comments_postId ON social_comments(postId)",
+      "CREATE INDEX IF NOT EXISTS idx_cart_items_userId ON cart_items(userId)",
+      "CREATE INDEX IF NOT EXISTS idx_notifications_recipientId ON notifications(recipientId)",
+      "CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read)",
+      "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
+      "CREATE INDEX IF NOT EXISTS idx_users_handle ON users(handle)",
+      "CREATE INDEX IF NOT EXISTS idx_users_referralCode ON users(referralCode)",
+      "CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)",
+      "CREATE INDEX IF NOT EXISTS idx_reviews_productId ON reviews(productId)",
+      "CREATE INDEX IF NOT EXISTS idx_pay_for_me_requests_userId ON pay_for_me_requests(userId)"
+    ];
+    for (const sql of perfIndexes) {
+      try {
+        await db.run(sql);
+      } catch (e) {
+        // Safe to ignore if index exists or table is created subsequently
+      }
+    }
+    console.log('Database performance indexes verified successfully');
   } catch (err) {
     console.error("Error initializing database schema:", err);
     throw err; // Throw error to stop server startup
@@ -680,6 +751,32 @@ async function startServer() {
   app.use('/img', express.static(path.join(process.cwd(), 'public/img'), uploadsCacheOptions));
   app.use('/clothes', express.static(path.join(process.cwd(), 'clothes'), uploadsCacheOptions));
   app.use('/assets', express.static(path.join(process.cwd(), 'dist/assets'), assetsCacheOptions));
+
+  // Public catalog HTTP cache headers for instant client responses
+  app.use('/api/categories', (req, res, next) => {
+    if (req.method === 'GET') {
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    }
+    next();
+  });
+  app.use('/api/bundles', (req, res, next) => {
+    if (req.method === 'GET') {
+      res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+    }
+    next();
+  });
+  app.use('/api/tags', (req, res, next) => {
+    if (req.method === 'GET') {
+      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+    }
+    next();
+  });
+  app.use('/api/products', (req, res, next) => {
+    if (req.method === 'GET') {
+      res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
+    }
+    next();
+  });
 
   // API Routes
   app.use('/api/products', productsRouter);

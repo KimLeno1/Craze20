@@ -5,6 +5,16 @@ import { authenticate, authenticateAny, AuthRequest } from '../middleware/auth.j
 
 const router = Router();
 
+const safeJsonParse = (val: any, fallback: any = []) => {
+  if (!val) return fallback;
+  if (typeof val !== 'string') return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return fallback;
+  }
+};
+
 // --- USER STATS ---
 router.get('/user-stats/:userId', authenticate, async (req: AuthRequest, res: any) => {
   try {
@@ -15,11 +25,11 @@ router.get('/user-stats/:userId', authenticate, async (req: AuthRequest, res: an
     if (row) {
       res.json({
         ...row,
-        achievements: row.achievements ? JSON.parse(row.achievements) : [],
-        dailyQuests: row.dailyQuests ? JSON.parse(row.dailyQuests) : [],
-        quests: row.quests ? JSON.parse(row.quests) : [],
-        brandSubscriptions: row.brandSubscriptions ? JSON.parse(row.brandSubscriptions) : [],
-        tagSubscriptions: row.tagSubscriptions ? JSON.parse(row.tagSubscriptions) : [],
+        achievements: safeJsonParse(row.achievements, []),
+        dailyQuests: safeJsonParse(row.dailyQuests, []),
+        quests: safeJsonParse(row.quests, []),
+        brandSubscriptions: safeJsonParse(row.brandSubscriptions, []),
+        tagSubscriptions: safeJsonParse(row.tagSubscriptions, []),
         neuralStylistUsedToday: row.neuralStylistUsedToday || 0,
       });
     } else {
@@ -98,8 +108,8 @@ router.patch('/user-stats/:userId/achievements/:achievementId', authenticate, [
   try {
     const row = await db.get('SELECT achievements FROM user_stats WHERE userId = ?', [req.params.userId]);
     if (row && row.achievements) {
-      const achievements = JSON.parse(row.achievements);
-      const index = achievements.findIndex((a: any) => a.id === req.params.achievementId);
+      const achievements = safeJsonParse(row.achievements, []);
+      const index = Array.isArray(achievements) ? achievements.findIndex((a: any) => a.id === req.params.achievementId) : -1;
       if (index !== -1) {
         achievements[index].progress = progress;
         await db.run('UPDATE user_stats SET `achievements` = ? WHERE `userId` = ?', [JSON.stringify(achievements), req.params.userId]);
@@ -134,10 +144,10 @@ router.get('/user-preferences/:userId', authenticate, async (req: AuthRequest, r
     if (row) {
       res.json({
         ...row,
-        preferredCategories: row.preferredCategories ? JSON.parse(row.preferredCategories) : [],
-        preferredGenders: row.preferredGenders ? JSON.parse(row.preferredGenders) : [],
-        colorPreferences: row.colorPreferences ? JSON.parse(row.colorPreferences) : [],
-        priceRange: row.priceRange ? JSON.parse(row.priceRange) : null,
+        preferredCategories: safeJsonParse(row.preferredCategories, []),
+        preferredGenders: safeJsonParse(row.preferredGenders, []),
+        colorPreferences: safeJsonParse(row.colorPreferences, []),
+        priceRange: safeJsonParse(row.priceRange, null),
         styleProtocolCompleted: !!row.styleProtocolCompleted,
         checkoutProtocolCompleted: !!row.checkoutProtocolCompleted,
         tutorialFinished: !!row.tutorialFinished
@@ -189,10 +199,10 @@ router.get('/user-history/:userId', authenticate, async (req: AuthRequest, res: 
     if (row) {
       res.json({
         ...row,
-        viewedProductIds: row.viewedProductIds ? JSON.parse(row.viewedProductIds) : [],
-        wishlistedProductIds: row.wishlistedProductIds ? JSON.parse(row.wishlistedProductIds) : [],
-        purchasedProductIds: row.purchasedProductIds ? JSON.parse(row.purchasedProductIds) : [],
-        cartedProductIds: row.cartedProductIds ? JSON.parse(row.cartedProductIds) : [],
+        viewedProductIds: safeJsonParse(row.viewedProductIds, []),
+        wishlistedProductIds: safeJsonParse(row.wishlistedProductIds, []),
+        purchasedProductIds: safeJsonParse(row.purchasedProductIds, []),
+        cartedProductIds: safeJsonParse(row.cartedProductIds, []),
       });
     } else {
       res.json({ viewedProductIds: [], wishlistedProductIds: [], purchasedProductIds: [], cartedProductIds: [] });
@@ -244,10 +254,10 @@ router.post('/user-history/:userId/track', authenticate, [
   const { productId, action } = req.body;
   try {
     const row = await db.get('SELECT * FROM user_history WHERE userId = ?', [req.params.userId]);
-    let viewed = row && row.viewedProductIds ? JSON.parse(row.viewedProductIds) : [];
-    let wishlisted = row && row.wishlistedProductIds ? JSON.parse(row.wishlistedProductIds) : [];
-    let purchased = row && row.purchasedProductIds ? JSON.parse(row.purchasedProductIds) : [];
-    let carted = row && row.cartedProductIds ? JSON.parse(row.cartedProductIds) : [];
+    let viewed = row && row.viewedProductIds ? safeJsonParse(row.viewedProductIds, []) : [];
+    let wishlisted = row && row.wishlistedProductIds ? safeJsonParse(row.wishlistedProductIds, []) : [];
+    let purchased = row && row.purchasedProductIds ? safeJsonParse(row.purchasedProductIds, []) : [];
+    let carted = row && row.cartedProductIds ? safeJsonParse(row.cartedProductIds, []) : [];
 
     if (action === 'view' && !viewed.includes(productId)) viewed.push(productId);
     if (action === 'wishlist' && !wishlisted.includes(productId)) wishlisted.push(productId);
@@ -263,6 +273,27 @@ router.post('/user-history/:userId/track', authenticate, [
     res.json({ status: 'success' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to track action' });
+  }
+});
+
+// --- AI USAGE TRACKING (VTON & Neural Stylist) ---
+router.post('/ai-usage', authenticate, async (req: AuthRequest, res: any) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+    const { type } = req.body;
+    if (type === 'tryon') {
+      await db.run('UPDATE user_stats SET aiTryOnsUsedToday = COALESCE(aiTryOnsUsedToday, 0) + 1 WHERE userId = ?', [userId]);
+    } else {
+      await db.run('UPDATE user_stats SET neuralStylistUsedToday = COALESCE(neuralStylistUsedToday, 0) + 1 WHERE userId = ?', [userId]);
+    }
+    const updated = await db.get('SELECT aiTryOnsUsedToday, neuralStylistUsedToday FROM user_stats WHERE userId = ?', [userId]);
+    res.json({ status: 'success', data: updated });
+  } catch (error) {
+    console.error('Error recording AI usage:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to record usage' });
   }
 });
 

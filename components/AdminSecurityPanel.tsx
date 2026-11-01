@@ -64,7 +64,7 @@ const AdminSecurityPanel: React.FC = () => {
         // Refresh status
         await fetchSecurityData();
       } else {
-        toast.error(response.message || `Protocol failed during ${action}.`);
+        toast.error(response.message || `Action failed during ${action}.`);
       }
     } catch (error) {
       console.error('Security action failed:', error);
@@ -101,8 +101,8 @@ const AdminSecurityPanel: React.FC = () => {
     <div className="space-y-12 animate-in fade-in duration-500">
       <header className="flex justify-between items-end">
         <div>
-          <h2 className="text-3xl font-serif italic text-white">Security_Control_Center</h2>
-          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] mt-2">Neural Firewall & System Integrity Monitoring</p>
+          <h2 className="text-3xl font-serif italic text-white">Security & System Health</h2>
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] mt-2">System Monitoring & Settings</p>
         </div>
         <div className="flex gap-4">
           <div className="bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-xl flex items-center gap-3">
@@ -116,7 +116,7 @@ const AdminSecurityPanel: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {[
           { label: 'Neural Firewall', value: systemStatus.firewall, color: 'text-[#00D1FF]' },
-          { label: 'Encryption Protocol', value: systemStatus.encryption, color: 'text-[#00D1FF]' },
+          { label: 'Data Encryption', value: systemStatus.encryption, color: 'text-[#00D1FF]' },
           { label: 'Active Links', value: systemStatus.activeSessions, color: 'text-amber-500' },
           { label: 'Threat Level', value: systemStatus.threatLevel, color: 'text-green-500' },
         ].map((stat, i) => (

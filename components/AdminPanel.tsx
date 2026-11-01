@@ -26,6 +26,7 @@ import AdminTagCategoryManager from "./AdminTagCategoryManager";
 import AdminFeedbackPanel from "./AdminFeedbackPanel";
 import AdminCustomRequestsPanel from "./AdminCustomRequestsPanel";
 import AdminUserPanel from "./AdminUserPanel";
+import AdminFlashSaleManager from "./AdminFlashSaleManager";
 import { Skeleton } from "./Skeleton";
 import {
   LayoutDashboard,
@@ -71,6 +72,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     | "DATABASE"
     | "SUPPLIERS"
     | "PROMOS"
+    | "FLASH_SALES"
     | "SECURITY"
     | "PRICE_ANOMALY"
     | "KITS"
@@ -440,16 +442,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[300] bg-zinc-50 text-zinc-950 flex flex-col font-mono overflow-hidden">
-      <div className="h-14 bg-white border-b border-zinc-200 px-8 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.3em]">
+    <div className="admin-panel-theme fixed inset-0 z-[300] bg-[#09090B] text-zinc-100 flex flex-col font-mono overflow-hidden">
+      <div className="h-14 bg-zinc-900 border-b border-zinc-800 px-8 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.3em]">
         <div className="flex items-center gap-6">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-zinc-100 rounded-lg transition-all border border-zinc-200"
+            className="p-2 hover:bg-zinc-800 rounded-lg transition-all border border-zinc-700 text-zinc-200"
           >
-            <Menu className="w-4 h-4 text-zinc-950" />
+            <Menu className="w-4 h-4 text-zinc-200" />
           </button>
-          <span className="text-zinc-500">SYSTEM_OVERRIDE_ACTIVE</span>
+          <span className="text-zinc-400">SYSTEM_OVERRIDE_ACTIVE</span>
         </div>
         <button
           onClick={async () => {
@@ -461,7 +463,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
               onExit();
             }
           }}
-          className="text-red-500 hover:bg-red-500 hover:text-white px-4 py-2 transition-all border border-red-500/20 rounded-lg"
+          className="text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 transition-all border border-red-500/30 rounded-lg"
         >
           TERMINATE_SESSION
         </button>
@@ -469,7 +471,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
 
       <div className="flex-1 flex overflow-hidden">
         <aside
-          className={`${isSidebarOpen ? "w-64" : "w-0 opacity-0 pointer-events-none"} bg-white border-r border-zinc-200 flex flex-col p-4 space-y-2 overflow-y-auto transition-all duration-300 scrollbar-hide`}
+          className={`${isSidebarOpen ? "w-64" : "w-0 opacity-0 pointer-events-none"} bg-zinc-900 border-r border-zinc-800 flex flex-col p-4 space-y-2 overflow-y-auto transition-all duration-300 scrollbar-hide`}
         >
           {[
             { id: "METRICS", label: "Analytics", icon: "📊" },
@@ -480,6 +482,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             { id: "SUPPLIERS", label: "Suppliers", icon: "🏢" },
             { id: "TREASURY", label: "Treasury", icon: "🏦" },
             { id: "PROMOS", label: "Promos", icon: "🎟️" },
+            { id: "FLASH_SALES", label: "Flash Sales", icon: "⚡" },
             { id: "KITS", label: "Synergy Kits", icon: "📦" },
             { id: "PRICE_ANOMALY", label: "Global Reduction", icon: "⚡" },
             { id: "NOTIFICATIONS", label: "Broadcast", icon: "📢" },
@@ -495,8 +498,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
               onClick={() => setActiveTab(item.id as any)}
               className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 activeTab === item.id
-                  ? "bg-zinc-950 text-white"
-                  : "text-zinc-500 hover:bg-zinc-100"
+                  ? "bg-blue-600 text-white font-black shadow-lg"
+                  : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
               }`}
             >
               <span>{item.icon}</span>
@@ -505,13 +508,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           ))}
         </aside>
 
-        <main className="flex-1 overflow-y-auto p-12 bg-zinc-50">
+        <main className="flex-1 overflow-y-auto p-6 md:p-12 bg-[#09090B] text-zinc-100">
           {activeTab === "METRICS" && <AdminMetricsView />}
           {activeTab === "INVENTORY" && (
             <div className="space-y-8">
               <div className="flex justify-between items-center">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-serif italic text-zinc-950">
+                  <h3 className="text-xl font-serif italic text-white">
                     Inventory
                   </h3>
                   <p className="text-[8px] text-zinc-400 font-black tracking-widest uppercase">
@@ -524,12 +527,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     placeholder="Search SKU, category, or supplier ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white border border-zinc-200 p-3 rounded-lg text-xs text-zinc-950 w-64"
+                    className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg text-xs text-white placeholder-zinc-500 w-64 focus:outline-none focus:border-blue-500"
                   />
                   <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="bg-white border border-zinc-200 p-3 rounded-lg text-xs text-zinc-950"
+                    className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
                   >
                     <option value="ALL">All Categories</option>
                     {productCategories.map((cat) => (
@@ -541,7 +544,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   <select
                     value={filterStock}
                     onChange={(e) => setFilterStock(e.target.value)}
-                    className="bg-white border border-zinc-200 p-3 rounded-lg text-xs text-zinc-950"
+                    className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
                   >
                     <option value="ALL">All Stock Status</option>
                     <option value="IN_STOCK">In Stock</option>
@@ -550,7 +553,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-white border border-zinc-200 p-3 rounded-lg text-xs text-zinc-950"
+                    className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
                   >
                     <option value="NEWEST">Newest First</option>
                     <option value="STOCK_HIGH_LOW">Stock (High-Low)</option>
@@ -558,14 +561,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   </select>
                   <button
                     onClick={() => setShowBulkUploadModal(true)}
-                    className="px-8 py-3 bg-white border border-blue-200 text-blue-600 text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all rounded-2xl flex items-center gap-2 shadow-sm"
+                    className="px-6 py-3 bg-zinc-900 border border-blue-500/40 text-blue-400 text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all rounded-xl flex items-center gap-2 shadow-sm"
                   >
-                    <Upload className="w-3 h-3" />
+                    <Upload className="w-3.5 h-3.5" />
                     Bulk Upload
                   </button>
                   <button
                     onClick={handleExportCSV}
-                    className="px-8 py-3 bg-white border border-emerald-200 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all rounded-2xl flex items-center gap-2 shadow-sm"
+                    className="px-6 py-3 bg-zinc-900 border border-emerald-500/40 text-emerald-400 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all rounded-xl flex items-center gap-2 shadow-sm"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Export CSV
@@ -575,7 +578,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                       setEditingProduct(null);
                       setIsEditorOpen(true);
                     }}
-                    className="px-8 py-3 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all rounded-2xl shadow-lg hover:shadow-blue-500/20 hover:scale-[1.02]"
+                    className="px-6 py-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all rounded-xl shadow-lg hover:shadow-blue-500/20"
                   >
                     Add New Item
                   </button>
@@ -583,11 +586,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
               {/* Bulk Actions Panel */}
-              <div className="bg-white p-4 rounded-2xl border border-zinc-200 flex items-center justify-between shadow-sm">
+              <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-4">
                   <button
                     onClick={handleSelectAllProducts}
-                    className="px-4 py-2 border border-zinc-200 rounded-lg text-[10px] font-black text-zinc-950 hover:bg-zinc-50 tracking-widest uppercase"
+                    className="px-4 py-2 border border-zinc-700 bg-zinc-800 rounded-lg text-[10px] font-black text-zinc-200 hover:bg-zinc-700 tracking-widest uppercase"
                   >
                     {selectedProductIds.size === filteredProducts.length &&
                     filteredProducts.length > 0
@@ -603,7 +606,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   <select
                     value={bulkAction}
                     onChange={(e) => setBulkAction(e.target.value)}
-                    className="bg-white border border-zinc-200 p-2 rounded-lg text-[10px] text-zinc-950 uppercase tracking-widest"
+                    className="bg-zinc-800 border border-zinc-700 p-2 rounded-lg text-[10px] text-white uppercase tracking-widest"
                   >
                     <option value="">Select Bulk Action</option>
                     <option value="MARK_IN_STOCK">Mark In Stock</option>
@@ -617,7 +620,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                       placeholder="Count"
                       value={bulkStockCount}
                       onChange={(e) => setBulkStockCount(e.target.value)}
-                      className="bg-white border border-zinc-200 p-2 rounded-lg text-[10px] text-zinc-950 w-20"
+                      className="bg-zinc-800 border border-zinc-700 p-2 rounded-lg text-[10px] text-white w-20"
                     />
                   )}
 
@@ -628,7 +631,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                       (bulkAction === "SET_STOCK" && !bulkStockCount)
                     }
                     onClick={handleExecuteBulkAction}
-                    className="px-6 py-2 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Apply Bulk Edit
                   </button>
@@ -640,7 +643,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   ? [...Array(5)].map((_, i) => (
                       <div
                         key={i}
-                        className="bg-white p-6 border border-zinc-200 flex items-center justify-between rounded-3xl"
+                        className="bg-zinc-900 p-6 border border-zinc-800 flex items-center justify-between rounded-3xl"
                       >
                         <div className="flex items-center gap-6">
                           <Skeleton className="w-16 h-20 rounded-xl" />
@@ -658,21 +661,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   : filteredProducts.map((p) => (
                       <div
                         key={p.id}
-                        className={`bg-white p-6 border flex items-center justify-between group transition-all rounded-3xl ${selectedProductIds.has(p.id) ? "border-blue-500 bg-blue-50" : "border-zinc-200 hover:border-blue-600/30 hover:bg-zinc-50"}`}
+                        className={`bg-zinc-900 p-6 border flex items-center justify-between group transition-all rounded-3xl ${selectedProductIds.has(p.id) ? "border-blue-500 bg-blue-950/20" : "border-zinc-800 hover:border-zinc-700"}`}
                       >
                         <div className="flex items-center gap-6">
                           <input
                             type="checkbox"
                             checked={selectedProductIds.has(p.id)}
                             onChange={() => handleSelectProduct(p.id)}
-                            className="w-5 h-5 rounded border-zinc-300 bg-white checked:bg-blue-600 checked:border-blue-600 cursor-pointer"
+                            className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 checked:bg-blue-600 checked:border-blue-600 cursor-pointer"
                           />
                           <img
                             src={p.image}
-                            className="w-16 h-20 object-cover rounded-xl grayscale-0 transition-all border border-zinc-100"
+                            className="w-16 h-20 object-cover rounded-xl grayscale-0 transition-all border border-zinc-800"
                           />
                           <div className="space-y-1">
-                            <div className="text-xs uppercase font-black text-zinc-950 flex items-center gap-2">
+                            <div className="text-xs uppercase font-black text-white flex items-center gap-2">
                               {p.name}
                               {p.inStock ? (
                                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -680,7 +683,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <span className="w-2 h-2 rounded-full bg-red-500"></span>
                               )}
                             </div>
-                            <div className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest">
+                            <div className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">
                               SKU: {p.id} | Price: GH₵{p.price} | Stock:{" "}
                               {p.stockCount ?? "∞"}
                             </div>
@@ -691,7 +694,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                           <div className="flex flex-col items-end gap-2">
                             <div className="flex items-center gap-3">
                               {!!p.isHallOfFame && (
-                                <span className="text-[8px] font-black text-amber-600 border border-amber-200 bg-amber-50 px-2 py-0.5 rounded uppercase">
+                                <span className="text-[8px] font-black text-amber-400 border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 rounded uppercase">
                                   Hall of Fame
                                 </span>
                               )}
@@ -700,7 +703,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
 
                           <button
                             onClick={() => handleEditProduct(p)}
-                            className="px-6 py-3 bg-zinc-100 text-zinc-950 text-[9px] uppercase font-black tracking-widest transition-all rounded-lg border border-zinc-200 hover:bg-zinc-950 hover:text-white shadow-sm"
+                            className="px-6 py-3 bg-zinc-800 text-white text-[9px] uppercase font-black tracking-widest transition-all rounded-lg border border-zinc-700 hover:bg-blue-600 hover:border-blue-600 shadow-sm"
                           >
                             Configure
                           </button>
@@ -721,6 +724,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           {activeTab === "SUPPLIERS" && <AdminSupplierPanel />}
           {activeTab === "TREASURY" && <AdminWalletView />}
           {activeTab === "PROMOS" && <AdminPromoManager />}
+          {activeTab === "FLASH_SALES" && <AdminFlashSaleManager />}
           {activeTab === "PRICE_ANOMALY" && <AdminPriceAnomalyManager />}
           {activeTab === "KITS" && <AdminKitManager />}
           {activeTab === "NOTIFICATIONS" && <AdminNotificationManager />}

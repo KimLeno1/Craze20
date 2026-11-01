@@ -10,33 +10,35 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(({ mode, command }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: '/',
+      base: './',
       server: {
         port: 3000,
         host: '0.0.0.0',
         hmr: false,
       },
       plugins: [react(), tailwindcss()],
+      optimizeDeps: {
+        include: [
+          'react',
+          'react-dom',
+          'react-router-dom',
+          'lucide-react',
+          'motion/react',
+          'framer-motion',
+          'sonner',
+          'canvas-confetti'
+        ]
+      },
       build: {
         cssCodeSplit: true,
-        chunkSizeWarningLimit: 1200,
+        chunkSizeWarningLimit: 2000,
         rollupOptions: {
           output: {
-            manualChunks(id) {
-              if (id.includes('node_modules')) {
-                if (id.includes('react-router-dom') || id.includes('react-dom') || id.includes('react/')) {
-                  return 'vendor-react';
-                }
-                if (id.includes('lucide-react')) {
-                  return 'vendor-icons';
-                }
-                if (id.includes('motion')) {
-                  return 'vendor-motion';
-                }
-                if (id.includes('react-error-boundary')) {
-                  return 'vendor-error';
-                }
-              }
+            manualChunks: {
+              'vendor-core': ['react', 'react-dom'],
+              'vendor-motion': ['motion/react', 'framer-motion'],
+              'vendor-icons': ['lucide-react'],
+              'vendor-ui': ['sonner', 'canvas-confetti']
             }
           }
         }
